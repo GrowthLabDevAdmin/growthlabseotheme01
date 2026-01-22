@@ -97,6 +97,12 @@
     @include m.flex-center;
     flex-wrap: nowrap;
     gap: 8px;
+
+    svg{
+      path{
+        fill: rgb(var(--primary));
+      }
+    }
   }
 
   &__cta {
