@@ -34,15 +34,15 @@ function setBoxPosition() {
 
         if (prevSibling) {
           prevSibling.style.cssText += `padding-bottom:${
-            topPosition + 78
+            topPosition + 70
           }px;border-bottom:8px solid rgb(var(--tertiary));`;
         }
 
         if (nextSibling) {
           const isFooter = nextSibling.classList.contains("site-footer");
-          const paddingTop = `${bottomPosition + 68}px`; // +8px for the border
+          const paddingTop = `${bottomPosition + 60}px`; // +8px for the border
 
-          nextSibling.style.marginTop = `${-boxHeight - 38}px`; // Adjusted to compensate for 8px border
+          nextSibling.style.marginTop = `${-boxHeight - 30}px`; // Adjusted to compensate for 8px border
 
           if (isFooter && contactFormFooterWrapper) {
             contactFormFooterWrapper.style.paddingTop = paddingTop;
