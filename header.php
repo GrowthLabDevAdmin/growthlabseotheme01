@@ -36,7 +36,11 @@ if (!defined('ABSPATH')) {
             <div class="site-header__logo">
                 <a href="<?php echo esc_url(home_url('/' . $es)); ?>" class="site-logo">
                     <?php
-                    if (function_exists('the_custom_logo') && has_custom_logo()) the_custom_logo();
+                    if (function_exists('the_custom_logo') && has_custom_logo()) {
+                        $custom_logo_id = get_theme_mod('custom_logo');
+                        $image = wp_get_attachment_image_src($custom_logo_id, 'full');
+                        img_print_picture_tag(img: $image[0], alt_text: get_bloginfo('name'), is_priority: true);
+                    }
                     ?>
                     <span>Site Logo</span>
                 </a>

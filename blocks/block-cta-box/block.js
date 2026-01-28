@@ -26,7 +26,7 @@ function setBoxPosition() {
         if (!box || boxHeight === 0) return;
 
         const topPosition = boxHeight * 0.55;
-        const bottomPosition = boxHeight * 0.45;
+        const bottomPosition = boxHeight * 0.50; // Adjusted to 50% for better coverage
 
         if (firstChild) {
           firstChild.style.cssText += `margin-top:${-topPosition}px;padding-bottom:${topPosition}px;`;
@@ -34,15 +34,15 @@ function setBoxPosition() {
 
         if (prevSibling) {
           prevSibling.style.cssText += `padding-bottom:${
-            topPosition + 70
+            topPosition + 78
           }px;border-bottom:8px solid rgb(var(--tertiary));`;
         }
 
         if (nextSibling) {
           const isFooter = nextSibling.classList.contains("site-footer");
-          const paddingTop = `${bottomPosition + 60}px`;
+          const paddingTop = `${bottomPosition + 68}px`; // +8px for the border
 
-          nextSibling.style.marginTop = `${-boxHeight - 30}px`;
+          nextSibling.style.marginTop = `${-boxHeight - 38}px`; // Adjusted to compensate for 8px border
 
           if (isFooter && contactFormFooterWrapper) {
             contactFormFooterWrapper.style.paddingTop = paddingTop;
