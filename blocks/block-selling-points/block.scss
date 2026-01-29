@@ -21,6 +21,11 @@
     text-align: center;
   }
 
+  &__separator {
+    max-width: 70%;
+    margin-bottom: var(--sp-xsm);
+  }
+
   &__grid {
     @media (min-width: v.$ldpi) {
       width: 100%;
