@@ -61,7 +61,7 @@ if (!$bg_mobile) $bg_mobile = [];
                 <div class="hero__badges">
                     <?php foreach ($badges as $badge) {
                         $pic = $badge['badge'];
-                        img_print_picture_tag(img: $pic, classes: "hero__badge", is_priority: false, max_size: "thumbnail");
+                        img_print_picture_tag(img: $pic, classes: "hero__badge", is_priority: false, max_size: "medium");
                     } ?>
                 </div>
             <?php endif ?>
