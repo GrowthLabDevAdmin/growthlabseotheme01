@@ -48,8 +48,9 @@ textarea {
 input[type="checkbox"] {
   all: unset;
   appearance: none;
+  min-width: 1.6rem;
   width: 2.4rem;
-  height: 2.4rem;
+  aspect-ratio: 1 / 1;
   position: relative;
   z-index: 0;
   display: block;
@@ -69,10 +70,13 @@ input[type="checkbox"] {
   }
 
   &:checked::after {
-    content: url("../assets/img/icon-checkmark.svg");
     width: 100%;
     height: 100%;
-    display: block;
+    background-image: url("{theme-path}/assets/icons/icon-checkmark.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: rgb(var(--tertiary));
   }
 }
 
@@ -189,6 +193,11 @@ input[type="submit"] {
       display: flex;
       align-items: flex-start;
       flex-wrap: nowrap;
+
+      label {
+        width: 100%;
+        min-width: auto;
+      }
     }
   }
 }
