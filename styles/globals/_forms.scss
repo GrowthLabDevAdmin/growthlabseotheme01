@@ -70,13 +70,14 @@ input[type="checkbox"] {
   }
 
   &:checked::after {
-    width: 100%;
+   width: 100%;
     height: 100%;
-    background-image: url("{theme-path}/assets/icons/icon-checkmark.svg");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    color: rgb(var(--tertiary));
+    background-color: rgb(var(--tertiary));
+    -webkit-mask: url("{theme-path}/assets/icons/icon-checkmark.svg") no-repeat
+      center / contain;
+    mask: url("{theme-path}/assets/icons/icon-checkmark.svg") no-repeat center /
+      contain;
+    display: block;
   }
 }
 
