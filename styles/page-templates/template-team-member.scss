@@ -1,0 +1,51 @@
+@use "../../styles/globals/variables" as v;
+@use "../../styles/globals/mixins" as m;
+
+.single-team {
+  &__title.h3 {
+    color: rgb(var(--tertiary));
+  }
+
+  &__role.h5 {
+    color: rgb(var(--primary-light));
+  }
+
+  &__sidebar {
+    padding: var(--sp-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  &__picture {
+    width: 100%;
+    height: 45rem;
+
+    display: block;
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+  }
+
+  &__points {
+
+    & > li {
+      &::before {
+        content: none;
+      }
+
+      & > p:first-child {
+        color: rgb(var(--primary-dark));
+      }
+    }
+
+    ul {
+      margin-left: var(--sp-xsm);
+    }
+  }
+}

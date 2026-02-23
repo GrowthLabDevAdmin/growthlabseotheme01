@@ -1,0 +1,60 @@
+@use "../globals/variables" as v;
+@use "../globals/mixins" as m;
+
+//Pagination
+.pagination-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+
+  .arrow,
+  .btn {
+    height: auto;
+    position: relative;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+
+    &:has(a) {
+      padding: 0;
+      border-left: none;
+    }
+
+    a {
+      padding: 1.6rem 2.4rem;
+      @include m.flex-center;
+    }
+
+    &--prev {
+      border-right: none;
+      border-top-left-radius: 32px;
+      border-bottom-left-radius: 32px;
+
+      & + .pagination__item--number {
+        border-left: 1px solid rgb(var(--tertiary));
+      }
+    }
+
+    &--next {
+      border-left: none;
+      border-top-right-radius: 32px;
+      border-bottom-right-radius: 32px;
+    }
+
+    &__placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: -1;
+      opacity: 0;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+      path {
+        fill: rgb(var(--tertiary));
+      }
+    }
+  }
+}

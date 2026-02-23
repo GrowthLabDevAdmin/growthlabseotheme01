@@ -1,0 +1,67 @@
+@use "../globals/variables" as v;
+@use "../globals/mixins" as m;
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+
+  &.is-empty {
+    display: none;
+  }
+}
+
+.widget {
+  &__title {
+    margin-bottom: 0;
+    @include m.title(rgb(var(--text)), 3.6rem, 1.9vw, 3.6rem);
+  }
+
+  &--menu {
+    padding: var(--sp-xsm);
+    @include m.flex-center;
+    flex-direction: column;
+    gap: var(--sp-xsm);
+
+    & > * {
+      width: 100%;
+    }
+
+    .menu {
+      width: 100%;
+      @include m.flex-center;
+      flex-direction: column;
+      gap: var(--sp-xsm);
+
+      .menu-item {
+        width: 100%;
+        background: rgb(var(--secondary-light));
+        border: 1px solid rgb(var(--tertiary));
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+        transition: 0.3s ease-in-out;
+
+        &:hover {
+          background-color: rgb(var(--secondary));
+        }
+
+        a {
+          width: 100%;
+          padding: var(--sp-xsm);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          text-align: left;
+          color: rgb(var(--text));
+          font-weight: 700;
+
+          &::after {
+            content: "\276F";
+            font-size: 16px;
+            display: block;
+            color: rgb(var(--tertiary));
+          }
+        }
+      }
+    }
+  }
+}

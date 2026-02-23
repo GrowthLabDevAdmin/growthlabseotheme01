@@ -1,0 +1,112 @@
+@use "../globals/variables" as v;
+@use "../globals/mixins" as m;
+
+.default-card {
+  height: auto;
+
+  $card: &;
+
+  &__wrapper {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background-color: rgb(var(--secondary-light));
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+    transition: 0.4s ease;
+  }
+
+  &__pic-wrapper {
+    width: 100%;
+    height: 350px;
+    max-height: 350px;
+    position: relative;
+    display: flex;
+    transition: 0.3s ease-in-out;
+
+    span {
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+
+      path {
+        fill: rgb(var(--primary-light), 0.8);
+      }
+    }
+  }
+
+  &__pic {
+    width: 100%;
+    display: flex;
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center center;
+    }
+  }
+
+  &__inner {
+    width: 100%;
+    padding: var(--sp-sm);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: var(--sp-xsm);
+    transition: padding 0.4s ease;
+  }
+
+  &__title {
+    width: 100%;
+    position: relative;
+    color: rgb(var(--primary));
+    font-family: var(--font-serif);
+    font-size: 2.4rem;
+
+    &::after {
+      content: "";
+      width: 4.8rem;
+      height: 1px;
+      margin: var(--sp-xsm) auto 0;
+      display: block;
+      background-color: rgb(var(--tertiary));
+    }
+  }
+
+  &__content {
+    flex: 0 0 100%;
+    color: rgb(var(--text-color));
+    font-weight: 400;
+  }
+
+  &__btn {
+    width: fit-content;
+    max-height: 0;
+    overflow-y: hidden;
+    flex: 0 0 100%;
+    align-self: flex-end;
+    transition: 0.3s ease-in-out;
+  }
+
+  &:hover {
+    #{$card}__pic-wrapper {
+      max-height: 290px;
+    }
+
+    #{$card}__btn {
+      max-height: 60px;
+      overflow-y: visible;
+    }
+  }
+}

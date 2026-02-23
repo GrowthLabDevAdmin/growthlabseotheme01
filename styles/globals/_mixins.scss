@@ -1,0 +1,52 @@
+/**
+ * Title Mixin with Customizable Parameters
+ * @param {color} $color - Main title color (default: --primary)
+ * @param {color} $strong-color - Strong text color (default: --tertiary)
+ * @param {string} $font-family - Font family (default: --font-serif)
+ * @param {number} $font-weight - Font weight (default: 600)
+ * @param {string} $font-size - Font size with clamp (default: clamp(3.2rem, 3.33vw, 3.6rem))
+ * @param {number} $line-height - Line height (default: 1.25)
+ */
+
+@mixin title(
+  $color: null,
+  $font-size-min: null,
+  $font-size-mid: null,
+  $font-size-max: null,
+  $font-weight: 600,
+  $line-height: 1.25
+) {
+  // Color handling with CSS variable fallback
+  color: if($color != null, $color, rgb(var(--primary)));
+
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: $font-weight;
+  line-height: $line-height;
+
+  // Fluid typography with null checks
+  @if $font-size-min !=
+    null and
+    $font-size-mid !=
+    null and
+    $font-size-max !=
+    null
+  {
+    font-size: clamp($font-size-min, $font-size-mid, $font-size-max);
+  } @else {
+    font-size: clamp(3.2rem, 3.33vw, 3.6rem);
+  }
+
+  strong {
+    all: unset;
+    font-weight: inherit;
+    line-height: inherit;
+    color: rgb(var(--tertiary));
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

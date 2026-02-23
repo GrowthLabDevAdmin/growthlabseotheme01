@@ -1,0 +1,258 @@
+@use "../../styles/globals/variables" as v;
+@use "../../styles/globals/mixins" as m;
+
+.cta-box {
+  position: relative;
+  overflow-y: visible;
+  @include m.flex-center;
+  content-visibility: visible;
+
+  $parent: &;
+
+  &.float {
+    padding: 0 !important;
+    z-index: 20;
+
+    & + * {
+      transition: margin-top 0.2s ease, padding-top 0.2s ease;
+
+      & > section:first-child {
+        padding-top: 0;
+      }
+
+      &.site-footer {
+        margin-top: 0;
+        padding-top: 0;
+
+        .contact-form-footer {
+          &__wrapper {
+            margin-top: 0;
+            transition: padding-top 0.2s ease;
+          }
+
+          &__inner {
+            margin-top: 0;
+          }
+        }
+      }
+    }
+
+    #{$parent}__wrapper {
+      padding: 0;
+      contain: layout style;
+      transition: margin-top 0.15s ease, padding-bottom 0.15s ease;
+      // Hide until positioned by JS
+      opacity: 0;
+    }
+
+    // Show after JS positions it
+    &.positioned #{$parent}__wrapper {
+      opacity: 1;
+      transition: opacity 0.2s ease, margin-top 0.15s ease,
+        padding-bottom 0.15s ease;
+    }
+  }
+
+  * + &.float {
+    ~ * {
+      transition: padding-bottom 0.2s ease, border-bottom 0.2s ease;
+    }
+  }
+
+  &.within,
+  &.float {
+    #{$parent}__wrapper {
+      padding: var(--sp-sm) 0;
+    }
+
+    #{$parent}__inner {
+      gap: var(--sp-xsm);
+    }
+
+    #{$parent}__heading {
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    #{$parent}__main {
+      flex-flow: row wrap;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    #{$parent}__title {
+      @include m.title(rgb(var(--secondary)), 3.2rem, 3.333vw, 3.6rem);
+    }
+
+    #{$parent}__separator {
+      display: flex;
+      flex: 1;
+      hr:first-child {
+        display: none;
+      }
+    }
+
+    #{$parent}__btn {
+      width: fit-content;
+
+      &::after,
+      &::before {
+        content: none;
+      }
+    }
+
+    &.light {
+      #{$parent}__wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--sp-sm);
+      }
+
+      #{$parent}__decoration {
+        width: 24rem;
+        height: 24rem;
+        @include m.flex-center;
+        box-shadow: 8px 8px 0px rgb(var(--tertiary));
+        background-color: rgb(var(--primary));
+
+        svg {
+          width: 10rem;
+          height: 10rem;
+          display: block;
+          path {
+            fill: rgb(var(--secondary-light));
+          }
+        }
+      }
+
+      #{$parent}__box {
+        flex: 1 0 calc(100% - 24rem - var(--sp-sm));
+        background-color: rgb(var(--secondary-light));
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+      }
+
+      #{$parent}__inner {
+        min-height: 24rem;
+        justify-content: center;
+      }
+
+      #{$parent}__title {
+        color: rgb(var(--primary));
+      }
+
+      #{$parent}__content p {
+        color: rgb(var(--text-color)) x;
+      }
+
+      #{$parent}__separator {
+        display: none;
+      }
+    }
+  }
+
+  &__sidebg {
+    height: 120%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: -1;
+    display: none;
+
+    @media (min-width: v.$ldpi) {
+      display: block;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      object-position: right bottom;
+    }
+  }
+
+  &__wrapper {
+    height: fit-content;
+    padding: 20rem 0;
+    @include m.flex-center;
+  }
+
+  &__box {
+    max-width: 100%;
+    padding: var(--sp-xsm);
+    background-color: rgb(var(--primary));
+    contain: layout;
+  }
+
+  &__inner {
+    padding: var(--sp-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+
+  &__heading {
+    width: 100%;
+    @include m.flex-center;
+    flex-direction: column;
+    text-align: center;
+    gap: var(--sp-xsm);
+  }
+
+  &__main {
+    width: 100%;
+    @include m.flex-center;
+    flex-direction: column;
+    gap: var(--sp-xsm);
+    text-align: center;
+  }
+
+  &__title {
+    min-width: 250px;
+    @include m.title(rgb(var(--secondary)), 4rem, 5.6vw, 7rem);
+  }
+
+  &__pretitle {
+    font-weight: 400;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    letter-spacing: 3px;
+    text-align: center;
+    text-transform: uppercase;
+    color: rgb(var(--secondary));
+  }
+
+  &__separator {
+    display: none;
+  }
+
+  &__content {
+    min-width: 300px;
+    flex: 1;
+    p {
+      color: rgb(var(--secondary));
+    }
+    ul {
+      li {
+        color: rgb(var(--secondary));
+      }
+    }
+  }
+
+  &__btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+
+    &::after,
+    &::before {
+      content: "";
+      height: 1px;
+      background-color: rgb(var(--tertiary));
+      flex: 1;
+    }
+  }
+}

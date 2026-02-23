@@ -1,0 +1,17 @@
+{
+  "name": "acf/contact-form",
+  "title": "Contact Form",
+  "style": ["file:./block-min.css"],
+  "script": ["file:./block-min.js"],
+  "category": "growthlabtheme01-blocks",
+  "icon": "block-default",
+  "keywords": ["growthlabseo", "contact", "form", "picture"],
+  "acf": {
+    "mode": "edit",
+    "renderTemplate": "block.php"
+  },
+  "supports": {
+    "mode": false
+  },
+  "align": "full"
+}

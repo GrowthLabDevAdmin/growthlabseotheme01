@@ -1,0 +1,43 @@
+@use "../../styles/globals/variables" as v;
+@use "../../styles/globals/mixins" as m;
+@use "../template-parts/post-card";
+@use "../template-parts/sidebar";
+
+.blog,
+.archive {
+  &__inner {
+    padding: var(--sp-lg) 0;
+  }
+
+  &__wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-md);
+  }
+
+  &__main {
+    min-width: 280px;
+    padding: var(--sp-sm);
+    flex: 1 0 calc(60% - var(--sp-md));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-xsm);
+  }
+
+  &__loop {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-xsm);
+  }
+
+  &__sidebar {
+    min-width: 280px;
+    flex: 1 1 calc(40%);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xsm);
+  }
+}

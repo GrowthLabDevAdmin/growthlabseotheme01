@@ -1,0 +1,89 @@
+@use "../../styles/globals/variables" as v;
+@use "../../styles/globals/mixins" as m;
+@use "../../styles/template-parts/result-card";
+@use "../../styles/template-parts/post-card";
+@use "../../styles/template-parts/default-card";
+@use "../../styles/template-parts/testimonial-card";
+
+.posts-grid {
+  padding: var(--sp-xsm) 0;
+
+  @media (min-width: v.$ldpi) {
+    padding: var(--sp-lg) 0;
+  }
+
+  $parent: &;
+
+  &:has(.bg-image) {
+    #{$parent}__title,
+    #{$parent}__content > * {
+      color: rgb(var(--secondary));
+    }
+  }
+
+  &__wrapper {
+    padding: var(--sp-xsm);
+    @include m.flex-center;
+    flex-direction: column;
+    gap: var(--sp-xsm);
+
+    @media (min-width: v.$ldpi) {
+      padding: var(--sp-sm);
+    }
+  }
+
+  &__title {
+    @include m.title(null, 4rem, 4.2vw, 4.8rem);
+  }
+
+  &__separator {
+    max-width: 70%;
+    margin-bottom: var(--sp-xsm);
+  }
+
+  &__content {
+    max-width: 96rem;
+  }
+
+  &__feed {
+    width: 100%;
+    @include m.flex-center;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+
+  &__grid {
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: var(--sp-xsm);
+  }
+
+  &__card {
+    &.case-result {
+      min-width: 28rem;
+      max-width: 40.8rem;
+      flex: 1 0 calc((100% / 3) - (var(--sp-xsm) * 2 / 3));
+    }
+
+    &.post,
+    &.testimonial {
+      min-width: 28rem;
+      max-width: 62rem;
+      flex: 1 0 calc(50% - (var(--sp-xsm) / 2));
+    }
+
+    &.team,
+    &.custom {
+      min-width: 28rem;
+      max-width: 30.15rem;
+      flex: 1 0 calc(25% - (var(--sp-xsm) * 3 / 4));
+    }
+  }
+
+  &__arrows {
+    margin-top: var(--sp-xsm);
+  }
+}

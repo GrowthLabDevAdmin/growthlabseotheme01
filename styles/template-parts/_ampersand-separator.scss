@@ -1,0 +1,21 @@
+@use "globals/variables" as v;
+@use "globals/mixins" as m;
+
+.ampersand-separator {
+  width: 100%;
+  @include m.flex-center;
+  column-gap: 0.8rem;
+
+  svg {
+    width: 3.2rem;
+    height: 3.2rem;
+    color: rgb(var(--tertiary));
+  }
+
+  hr {
+    height: 1px;
+    flex: 1 1 calc(50% - 2rem);
+    display: block;
+    background-color: rgb(var(--tertiary));
+  }
+}

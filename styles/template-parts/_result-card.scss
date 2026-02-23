@@ -1,0 +1,123 @@
+@use "../globals/variables" as v;
+@use "../globals/mixins" as m;
+
+.result-card {
+  height: auto;
+  $card: &;
+
+  @keyframes descriptionOpacity {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  svg {
+    width: 64px;
+    height: 64px;
+    z-index: 1;
+    opacity: 1;
+    transform: none;
+    transition: 0.4s ease;
+  }
+
+  &__wrapper {
+    width: 100%;
+    height: 100%;
+    padding: var(--sp-xsm);
+    @include m.flex-center;
+    background-color: rgb(var(--secondary-light));
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+    transition: 0.4s ease;
+  }
+
+  &__inner {
+    width: 100%;
+    height: 100%;
+    padding: var(--sp-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-xsm);
+    transition: padding 0.4s ease;
+  }
+
+  &__amount {
+    @include m.flex-center;
+    flex-direction: column;
+    @include m.title(rgb(var(--primary)), 4.8rem, 5vw, 6.4rem, 600, 1);
+    transition: font-size 0.4s ease;
+
+    &::after {
+      content: "";
+      width: 48px;
+      height: 1px;
+      margin-top: var(--sp-xsm);
+      background-color: rgb(var(--tertiary));
+    }
+  }
+
+  &__title {
+    color: rgb(var(--text-color));
+    font-family: var(--font-sans);
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.5;
+    transition: 0.4s linear;
+  }
+
+  &__description {
+    max-height: 72px;
+    overflow: hidden;
+    color: rgb(var(--text-color));
+    @extend .result-card__title;
+    font-weight: 400;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    transition: 0.4s ease-out 0.4s;
+
+    @media (min-width: v.$tablet) {
+      transition-delay: 1s;
+    }
+  }
+
+  &:hover {
+    svg {
+      position: absolute;
+      z-index: -5;
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    #{$card}__wrapper {
+      padding: 0;
+    }
+
+    #{$card}__inner {
+      padding: var(--sp-xsm);
+    }
+
+    #{$card}__amount {
+      font-size: 4rem;
+    }
+
+    #{$card}__title {
+      animation-name: descriptionOpacity;
+      animation-timing-function: ease-in-out;
+      animation-duration: 1.2s;
+    }
+
+    #{$card}__description {
+      max-height: 5000px;
+      overflow: visible;
+      -webkit-line-clamp: unset;
+      animation-name: descriptionOpacity;
+      animation-timing-function: ease-in-out;
+      animation-duration: 1.2s;
+    }
+  }
+}

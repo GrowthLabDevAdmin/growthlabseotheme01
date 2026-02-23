@@ -1,0 +1,108 @@
+@use "../../styles/globals/variables" as v;
+@use "../../styles/globals/mixins" as m;
+
+.content-box-grid {
+  &__wrapper {
+    padding: var(--sp-xsm);
+    @include m.flex-center;
+    flex-direction: column;
+    gap: var(--sp-xsm);
+
+    @media (min-width: v.$ldpi) {
+      padding: var(--sp-sm);
+    }
+  }
+
+  &__title {
+    @include m.title(null, 4rem, 4.2vw, 4.8rem);
+  }
+
+  &__separator {
+    max-width: 70%;
+    margin-bottom: var(--sp-xsm);
+  }
+
+  &__grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--sp-xsm);
+  }
+}
+
+.content-box {
+  max-width: 61.2rem;
+  min-width: 280px;
+  height: auto;
+  padding-block: var(--sp-xsm);
+  display: block;
+  flex: 1 0 calc(50% - (var(--sp-sm) / 2));
+
+  $parent: &;
+
+  &__wrapper {
+    height: 100%;
+    padding: var(--sp-sm);
+    display: block;
+    background-color: rgb(var(--secondary-light));
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+  }
+
+  &__title {
+    margin-bottom: var(--sp-xsm);
+    @include m.title(null, 3rem, 3vw, 3.2rem);
+    a {
+      all: inherit;
+      transition: 0.3s ease-in-out;
+      &:hover {
+        cursor: pointer;
+        color: rgb(var(--tertiary));
+      }
+    }
+  }
+
+  &__content {
+    display: inline-block;
+    text-align: center;
+
+    @media (min-width: v.$tablet) {
+      text-align: left;
+
+      & > *:nth-child(2) {
+        margin-top: var(--sp-xsm);
+      }
+    }
+  }
+
+  &--menu-item {
+    max-width: 30.2rem;
+    padding-block: 0;
+    border-left: 3px solid rgb(var(--tertiary));
+    flex: 1 0 calc(25% - var(--sp-xsm) * 3 / 4);
+    transition: 0.3s ease-in-out;
+
+    &:hover {
+      cursor: pointer;
+
+      #{$parent}__wrapper {
+        background-color: rgb(var(--secondary-dark));
+      }
+
+      #{$parent}__title {
+        color: rgb(var(--tertiary));
+      }
+    }
+
+    #{$parent}__wrapper {
+      padding: var(--sp-xsm);
+    }
+
+    #{$parent}__title {
+      margin-bottom: 0;
+      transition: 0.3s ease-in-out;
+      font-family: var(--font-sans);
+      font-size: 1.8rem;
+    }
+  }
+}

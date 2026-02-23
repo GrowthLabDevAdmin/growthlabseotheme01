@@ -1,0 +1,36 @@
+/* 
+Color scheme is defined in theme-functions/color-scheme.php by dynamic selection. The default color scheme is as follows:
+
+--primary:           #15253f; // rgb(21, 37, 63)
+--primary-dark:      #08182f; // rgb(8, 24, 47)
+--primary-light:     #2C3D5B; // rgb(44, 61, 91)
+
+--secondary:         #F4F3EE; // rgb(244, 243, 238)
+--secondary-dark:    #E7E5DF; // rgb(231, 229, 223)
+--secondary-light:   #FFFFFF; // rgb(255, 255, 255)
+
+--tertiary:          #BC9061; // rgb(188, 144, 97)
+--tertiary-dark:     #9D7A55; // rgb(157, 122, 85)
+--tertiary-light:    #DCAB77; // rgb(220, 171, 119)
+
+--text-color:        #15253f; // rgb(21, 37, 63)
+*/
+
+:root {
+  //Fonts
+  --font-sans: "Open Sans", sans-serif;
+  --font-serif: "Fraunces", serif;
+
+  //Spacing
+  --sp-xsm: 1.6rem;
+  --sp-sm: 3.2rem;
+  --sp-md: 4.8rem;
+  --sp-lg: 6.4rem;
+}
+
+//Breakpoints
+$mobile: 480px;
+$tablet: 768px;
+$ldpi: 1024px;
+$mdpi: 1200px;
+$hdpi: 1440px;

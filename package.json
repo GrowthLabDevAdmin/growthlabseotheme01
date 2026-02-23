@@ -1,0 +1,40 @@
+{
+  "name": "growthlabtheme01",
+  "version": "1.0.0",
+  "description": "GrowthLab WordPress Theme",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GrowthLabDevAdmin/gorwthlabseotheme01.git"
+  },
+  "keywords": [
+    "wordpress",
+    "seo",
+    "theme",
+    "acf",
+    "dynamic",
+    "blocks",
+    "gulp",
+    "responsive",
+    "customizable"
+  ],
+  "author": "Growth Lab SEO Development Team",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/GrowthLabDevAdmin/gorwthlabseotheme01/issues"
+  },
+  "homepage": "https://github.com/GrowthLabDevAdmin/gorwthlabseotheme01#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "gulp": "^5.0.1",
+    "gulp-postcss": "^10.0.0",
+    "gulp-rename": "^2.1.0",
+    "gulp-sass": "^6.0.1",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-terser": "^2.1.0",
+    "sass": "^1.93.2"
+  }
+}
