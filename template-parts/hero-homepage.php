@@ -24,13 +24,13 @@ if (!$bg_mobile) $bg_mobile = [];
 <section id="hero-homepage" class="hero hero--homepage">
 
     <?php if (!empty($bg_desktop)) img_print_picture_tag(
-        img: $bg_desktop, 
-        tablet_img: $bg_tablet, 
-        mobile_img: $bg_mobile, 
-        is_cover: true, 
-        classes: "hero__bg-image bg-image gradient-overlay", 
+        img: $bg_desktop,
+        tablet_img: $bg_tablet,
+        mobile_img: $bg_mobile,
+        is_cover: true,
+        classes: "hero__bg-image bg-image gradient-overlay",
         is_priority: true
-        ); ?>
+    ); ?>
 
     <div class="hero__wrapper container">
         <div class="hero__content">
