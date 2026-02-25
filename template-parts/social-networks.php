@@ -15,7 +15,7 @@ $social_networks = array(
     'linkedin_url'   => 'icon-linkedin.svg',
 );
 
-$icon_dir = get_template_directory_uri() . '/assets/icons/';
+$icon_dir = get_template_directory() . '/assets/icons/';
 ?>
 
 <ul class="social-networks">
