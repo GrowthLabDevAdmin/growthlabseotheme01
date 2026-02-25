@@ -164,7 +164,7 @@ ol {
 li a {
   width: 100%;
   height: 100%;
-  display: block;
+  display: inline;
 }
 
 li {
@@ -364,6 +364,7 @@ img.bg-image {
       height: var(--sp-xsm);
       display: block;
       fill: rgb(var(--tertiary));
+      color: rgb(var(--tertiary));
       transition: all 0.3s ease-in-out;
     }
   }
