@@ -24,7 +24,7 @@
   &:has(.bg-image) {
     #{$parent}__title,
     #{$parent}__content > * {
-      color: rgb(var(--secondary));
+      color: rgb(var(--secondary-light));
     }
   }
 
@@ -84,6 +84,7 @@
     justify-content: space-between;
 
     & > * {
+      margin-bottom: 0;
       font-family: var(--font-sans);
       color: rgb(var(--text));
       font-size: 1.6rem;
