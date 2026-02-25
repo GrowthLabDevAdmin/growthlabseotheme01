@@ -48,12 +48,16 @@ if (get_field('toggle_block')):
                                 foreach ($faq_items as $item) :
                                     foreach ($item as $item => $faq) $$item = $faq;
                             ?>
-
-                                    <div class="faq__item accordeon">
-                                        <div class="faq__question accordeon__heading"><?php print_title($question, $question_tag); ?></div>
-                                        <div class="faq__answer formatted-text accordeon__content"><?= $answer ?></div>
+                                    <div class="faq__item accordion">
+                                        <div class="faq__question accordion__heading">
+                                            <?php print_title($question, $question_tag); ?>
+                                        </div>
+                                        <div class="faq__answer accordion__content">
+                                            <div class="formatted-text accordion__inner">
+                                                <?= $answer ?>
+                                            </div>
+                                        </div>
                                     </div>
-
                             <?php
                                 endforeach;
                             endif;

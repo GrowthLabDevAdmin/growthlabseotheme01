@@ -76,14 +76,6 @@
     background: rgb(var(--secondary-light));
     border-left: 8px solid rgb(var(--tertiary));
     box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
-
-    &.open {
-      #{$parent}__question {
-        &::after {
-          transform: rotate(-180deg);
-        }
-      }
-    }
   }
 
   &__question {
@@ -93,15 +85,6 @@
 
     & > * {
       font-weight: 700;
-    }
-
-    &::after {
-      content: url(../../assets/icons/icon-arrowhead-down.svg);
-      width: var(--sp-xsm);
-      height: var(--sp-xsm);
-      display: block;
-      fill: rgb(var(--tertiary));
-      transition: all 0.3s ease-in-out;
     }
   }
 

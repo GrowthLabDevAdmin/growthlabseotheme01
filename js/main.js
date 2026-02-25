@@ -2,19 +2,19 @@ const siteHeader = document.querySelector(".site-header");
 const mobileBtn = document.querySelector(".mobile-menu-button");
 const mainMenu = document.querySelector(".site-header .main-nav");
 const parentMenuItems = document.querySelectorAll(
-  ".site-header .main-nav .menu-item-has-children"
+  ".site-header .main-nav .menu-item-has-children",
 );
 const mainContent = document.querySelectorAll(
-  ".page-template-default .main-content"
+  ".page-template-default .main-content",
 );
 const blocksInContent = document.querySelectorAll(
-  ".page-template-default .main-content .block[data-extract]"
+  ".page-template-default .main-content .block[data-extract]",
 );
 const footerLocations = document.querySelector(
-  ".locations-footer .locations-cards__carousel .splide"
+  ".locations-footer .locations-cards__carousel .splide",
 );
 
-const accordeonItems = document.querySelectorAll(".accordeon");
+const accordionItems = document.querySelectorAll(".accordion");
 
 //Breakpoints
 const mobile = 480;
@@ -54,13 +54,11 @@ function eventListeners() {
   if (document.querySelector(".site-header--sticky"))
     window.addEventListener("scroll", fadeInHeader);
 
-  if (accordeonItems) {
-    accordeonItems.forEach((item) => {
+  if (accordionItems) {
+    accordionItems.forEach((item) => {
       item
-        .querySelector(".accordeon__heading")
-        .addEventListener("click", (e) => {
-          item.classList.toggle("open");
-        });
+        .querySelector(".accordion__heading")
+        .addEventListener("click", toggleAccordion);
     });
   }
 }
@@ -68,7 +66,7 @@ function eventListeners() {
 function showMenus() {
   // re-query in case the DOM changed
   const parentMenuItems = document.querySelectorAll(
-    ".site-header .main-nav .menu-item-has-children"
+    ".site-header .main-nav .menu-item-has-children",
   );
 
   if (!mobileBtn || !mainMenu) return;
@@ -126,6 +124,30 @@ function fadeInHeader() {
   } else {
     siteHeader.classList.remove("scrolling");
   }
+}
+
+//Accordion Items
+function toggleAccordion(e) {
+  const header = e.target;
+  const content = header.nextElementSibling;
+  const inner = content.querySelector(".accordion__inner");
+
+  header.closest(".accordion").classList.toggle("open");
+
+  if (content.style.maxHeight) {
+    // Cerrar
+    content.style.maxHeight = null;
+  } else {
+    // Abrir - usa la altura real del contenido
+    content.style.maxHeight = inner.scrollHeight + "px";
+  }
+
+  new ResizeObserver((inner) => {
+    const content = inner.target.closest(".accordion__content");
+    if (content && content.classList.contains("active")) {
+      content.style.maxHeight = entry.target.scrollHeight + "px";
+    }
+  });
 }
 
 //Splide Carousels
@@ -245,7 +267,7 @@ function extractBlocks() {
     },
     {
       rootMargin: "100px",
-    }
+    },
   );
 
   // Intersection Observer for entire carousels
@@ -260,7 +282,7 @@ function extractBlocks() {
     },
     {
       rootMargin: "200px",
-    }
+    },
   );
 
   function observeSplideCarousels() {
@@ -343,7 +365,7 @@ function extractBlocks() {
 //Unwrap Elements
 window.addEventListener("load", () => {
   const wrappedImages = document.querySelectorAll(
-    "p:has(img), p:has(picture), p:has(figure)"
+    "p:has(img), p:has(picture), p:has(figure)",
   );
   wrappedImages.forEach((paragraph) => {
     const elementsToUnwrap = paragraph.querySelectorAll("img, picture, figure");
