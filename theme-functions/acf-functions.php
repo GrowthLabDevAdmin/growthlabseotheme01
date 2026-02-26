@@ -192,6 +192,37 @@ add_action('init', function () {
 });
 
 
+//Synchronize Fields after theme updates
+add_action('upgrader_process_complete', function ($upgrader, $options) {
+    // Solo si se actualizó un tema
+    if ($options['type'] !== 'theme') return;
+
+    // Verificar que ACF esté disponible
+    if (!function_exists('acf_get_field_groups')) return;
+
+    $child_json_path = get_stylesheet_directory() . '/acf-json';
+    $groups = acf_get_field_groups();
+
+    foreach ($groups as $group) {
+        if (!isset($group['local']) || $group['local'] !== 'json') continue;
+
+        // Respetar overrides del child theme
+        $child_file = $child_json_path . '/' . $group['key'] . '.json';
+        if (file_exists($child_file)) continue;
+
+        // Sincronizar solo grupos desactualizados
+        if (
+            isset($group['modified'], $group['local_modified']) &&
+            $group['modified'] < $group['local_modified']
+        ) {
+            $local_field_group = acf_get_local_field_group($group['key']);
+            $local_field_group['fields'] = acf_get_local_fields($group['key']);
+            acf_import_field_group($local_field_group);
+        }
+    }
+}, 10, 2);
+
+
 // Allow HTML in ACF fields
 add_filter('acf/shortcode/allow_unsafe_html', function () {
     return true;
