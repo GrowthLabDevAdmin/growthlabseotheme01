@@ -46,11 +46,13 @@ if (get_field('toggle_block')):
         <div class="posts-grid__wrapper container border-box">
 
             <?php
-            print_title($title, $title_tag, "posts-grid__title tx-center");
-            get_template_part('template-parts/ampersand', 'separator', array('classes' => 'posts-grid__separator'));
+            if (isset($title) && $title) {
+                print_title($title, $title_tag, "posts-grid__title tx-center");
+                get_template_part('template-parts/ampersand', 'separator', array('classes' => 'posts-grid__separator'));
+            }
             ?>
 
-            <?php if ($text_content): ?>
+            <?php if (isset($text_content) && $text_content): ?>
                 <div class="posts-grid__content formatted-text tx-center">
                     <?= $text_content ?>
                 </div>
