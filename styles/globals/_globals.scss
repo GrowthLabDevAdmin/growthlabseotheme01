@@ -212,7 +212,7 @@ p {
   }
 
   .bg-bicolor {
-    background-color: transparent;
+    background-color: transparent !important;
     &::after {
       content: none;
     }
