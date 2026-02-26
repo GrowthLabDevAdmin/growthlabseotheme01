@@ -262,11 +262,11 @@
                 "class": "",
                 "id": ""
             },
-            "layout": "table",
+            "layout": "row",
             "pagination": 0,
             "min": 0,
             "max": 0,
-            "collapsed": "",
+            "collapsed": "field_691407e89945c",
             "button_label": "Add Row",
             "rows_per_page": 20,
             "sub_fields": [
@@ -433,5 +433,5 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "modified": 1772062218
+    "modified": 1772063394
 }

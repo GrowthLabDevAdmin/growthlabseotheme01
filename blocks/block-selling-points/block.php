@@ -46,7 +46,11 @@ if (get_field('toggle_block')):
                                                     <?= image_to_svg($icon) ?>
                                                 </div>
 
-                                                <p class="item-card__title"><?= $title ?></p>
+                                                <<?= $title_tag ?> class="item-card__title">
+                                                    <?= isset($link) && $link ? "<a href='" . $link["url"] . "' target='" . $link["target"] . "' class='item-card__link'>" : "" ?>
+                                                    <?= $title ?>
+                                                    <?= isset($link) && $link ? "</a>" : "" ?>
+                                                </<?= $title_tag ?>>
 
                                                 <p class="item-card__description"><?= $content ?></p>
                                             </div>
