@@ -2,6 +2,16 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$es = filterContentByLanguage() ? '_es' : '';
+$options = get_field_options('options' . $es);
+
+$tag = $args["tag"];
+
+if (!$args["tag"] || $args["tag"] === "") {
+    $tag = $options['posts_default_title_tag'] ?: "p";
+}
+
 ?>
 <article class="post-card <?= $args["classes"] ?>">
     <div class="post-card__wrapper">
@@ -14,8 +24,10 @@ if (!defined('ABSPATH')) {
         }
         if (isset($args['picture']) && $args['picture']) {
             img_print_picture_tag(img: $args["picture"], max_size: "medium", classes: "post-card__pic");
+        } elseif (get_field_options("options")["posts_default_image"] && !empty(get_field_options("options")["posts_default_image"])) {
+            img_print_picture_tag(img: get_field_options("options")["posts_default_image"], max_size: "medium", classes: "post-card__pic");
         } else {
-            include get_template_directory() . '/assets/icons/icon-file-image.svg';
+            include get_stylesheet_directory() . '/assets/icons/icon-file-image.svg';
         }
         if ($args['link_url']) {
             echo "</a>";
@@ -28,7 +40,7 @@ if (!defined('ABSPATH')) {
         <div class="post-card__inner">
             <span class="post-card__meta"><?= $args["meta"] ?></span>
 
-            <p class="post-card__title"><?= $args["title"] ?></p>
+            <<?= $tag ?> class="post-card__title"><?= $args["title"] ?></<?= $tag ?>>
 
             <p class="post-card__content"><?= $args["excerpt"] ?></p>
 

@@ -315,6 +315,40 @@
             "save_options": 0
         },
         {
+            "key": "field_699fc6ac06e18",
+            "label": "Posts Title Tag",
+            "name": "posts_title_tag",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "h1": "h1",
+                "h2": "h2",
+                "h3": "h3",
+                "h4": "h4",
+                "h5": "h5",
+                "h6": "h6",
+                "p": "p"
+            },
+            "default_value": "p",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "allow_in_bindings": 0,
+            "ui": 0,
+            "ajax": 0,
+            "placeholder": "",
+            "create_options": 0,
+            "save_options": 0
+        },
+        {
             "key": "field_690cca4f14dc1",
             "label": "Select Results Posts",
             "name": "select_results_posts",
@@ -740,5 +774,5 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "modified": 1765180395
+    "modified": 1772078802
 }

@@ -2,6 +2,15 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$es = filterContentByLanguage() ? '_es' : '';
+$options = get_field_options('options' . $es);
+
+$tag = $args["tag"];
+
+if (!$args["tag"] || $args["tag"] === "") {
+    $tag = $options['posts_default_title_tag'] ?: "p";
+}
 ?>
 
 <div class="default-card <?= $args["classes"] ?>">
@@ -13,10 +22,12 @@ if (!defined('ABSPATH')) {
         } else {
             echo "<div class='default-card__pic-wrapper'>";
         }
-        if (isset($args['picture']) && $args['picture'] && $args['picture'] !== '') {
+        if (isset($args['picture']) && $args['picture']) {
             img_print_picture_tag(img: $args["picture"], max_size: "medium", classes: "default-card__pic");
+        } elseif (get_field_options("options")["posts_default_image"] && !empty(get_field_options("options")["posts_default_image"])) {
+            img_print_picture_tag(img: get_field_options("options")["posts_default_image"], max_size: "medium", classes: "default-card__pic");
         } else {
-            include get_template_directory() . '/assets/icons/icon-file-image.svg';
+            include get_stylesheet_directory() . '/assets/icons/icon-file-image.svg';
         }
         if ($args['link_url'] && $args['link_url'] !== '') {
             echo "<span>" . $args['title'] . "</span></a>";
@@ -27,7 +38,7 @@ if (!defined('ABSPATH')) {
 
         <div class="default-card__inner tx-center">
 
-            <p class="default-card__title"><?= $args["title"] ?></p>
+            <<?= $tag ?> class="default-card__title"><?= $args["title"] ?></<?= $tag ?>>
 
             <p class="default-card__content"><?= $args["content"] ?></p>
 

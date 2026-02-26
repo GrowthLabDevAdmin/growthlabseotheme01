@@ -4,6 +4,9 @@ if (!defined('ABSPATH')) {
 }
 get_header();
 $post_id = get_option('page_for_posts');
+
+$es = filterContentByLanguage() ? '_es' : '';
+$options = get_field_options('options' . $es);
 ?>
 
 <section class="blog__inner bg-bicolor">
@@ -23,6 +26,7 @@ $post_id = get_option('page_for_posts');
                         "picture" => get_the_post_thumbnail_url(),
                         "meta" => get_the_date(),
                         "title" => get_the_title(),
+                        "tag" => $options['posts_default_title_tag'] ?: "p",
                         "excerpt" => get_the_excerpt(),
                         "link_url" => get_the_permalink(),
                         "link_target" => '_self',
