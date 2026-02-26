@@ -35,7 +35,7 @@ if (!$bg_mobile) $bg_mobile = [];
 
                     <div class="content-box__main">
                         <?php
-                        print_title($hero_title, $hero_title_tag, "content-box__title", true);
+                        print_title($args["hero_title"], $hero_title_tag, "content-box__title", true);
                         print_title($hero_subtitle, $hero_subtitle_tag, "content-box__subtitle", true);
                         ?>
                     </div>

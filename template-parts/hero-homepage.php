@@ -38,7 +38,7 @@ if (!$bg_mobile) $bg_mobile = [];
                 <div class="content-box__inner border-box tx-center">
                     <?php
                     print_title($hero_tagline, $hero_tagline_tag, "content-box__tagline");
-                    print_title($hero_title, $hero_title_tag, "content-box__title", true);
+                    print_title($args["hero_title"], $hero_title_tag, "content-box__title", true);
                     ?>
 
                     <?php if ($cta_button): ?>
