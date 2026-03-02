@@ -53,7 +53,7 @@ if (!defined('ABSPATH')) {
 
             <?php if ($location['google_map_url']): ?>
                 <a href="<?= $location['google_map_url'] ?>" class="location-card__cta">
-                    <?= filterContentByLanguage() ? "Obetner Direcciones" : "Get Directions" ?>
+                    <?= filterContentByLanguage() ? "Obtener Direcciones" : "Get Directions" ?>
                 </a>
             <?php endif ?>
 

@@ -15,8 +15,10 @@ if (get_field('toggle_block')):
         <div class="content-box-grid__wrapper container">
 
             <?php
-            print_title($title, $title_tag, "content-box-grid__title tx-center");
-            get_template_part('template-parts/ampersand', 'separator', array('classes' => 'content-box-grid__separator'));
+            if (isset($title) && $title) {
+                print_title($title, $title_tag, "content-box-grid__title tx-center");
+                get_template_part('template-parts/ampersand', 'separator', array('classes' => 'content-box-grid__separator'));
+            }
             ?>
 
             <?php if ($text_content): ?>

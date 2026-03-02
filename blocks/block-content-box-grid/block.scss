@@ -42,8 +42,7 @@
 
   $parent: &;
 
-  
-  &::before{
+  &::before {
     content: none;
   }
 
@@ -110,5 +109,20 @@
       font-family: var(--font-sans);
       font-size: 1.8rem;
     }
+  }
+}
+
+.sidebar {
+  .content-box-grid {
+    &__wrapper {
+      width: 100%;
+      margin: 0 0;
+      padding: 0;
+    }
+  }
+
+  .content-box {
+    max-width: 100%;
+    flex: 1 0 100%;
   }
 }
