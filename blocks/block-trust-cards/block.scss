@@ -58,6 +58,7 @@
 .trust-card {
   height: auto;
   padding: 0 calc(var(--sp-xsm) / 2);
+  list-style: none;
 
   @media (min-width: v.$ldpi) {
     min-width: 23.8rem;
@@ -65,6 +66,10 @@
   }
 
   $card: &;
+
+  &::before{
+    content: none;
+  }
 
   &__wrapper {
     width: 100%;

@@ -36,10 +36,16 @@
   min-width: 280px;
   height: auto;
   padding-block: var(--sp-xsm);
+  list-style: none;
   display: block;
   flex: 1 0 calc(50% - (var(--sp-sm) / 2));
 
   $parent: &;
+
+  
+  &::before{
+    content: none;
+  }
 
   &__wrapper {
     height: 100%;
