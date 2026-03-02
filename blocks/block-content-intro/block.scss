@@ -177,3 +177,12 @@
     }
   }
 }
+
+.sidebar {
+  .content-intro {
+    padding: 0;
+    &__wrapper {
+      margin: 0;
+    }
+  }
+}
