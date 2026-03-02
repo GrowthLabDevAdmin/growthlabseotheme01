@@ -59,23 +59,23 @@ add_filter('should_load_separate_core_block_assets', '__return_true');
 /**
  * Dequeue block assets that aren't used on the current page
  */
-add_action('wp_enqueue_scripts', function() {
+add_action('wp_enqueue_scripts', function () {
     global $post;
-    
+
     // Only run on singular pages with content
     if (!is_singular() || empty($post->post_content)) {
         return;
     }
-    
+
     // Get all registered blocks
     $registered_blocks = WP_Block_Type_Registry::get_instance()->get_all_registered();
-    
+
     // Parse blocks in the content
     $blocks = parse_blocks($post->post_content);
     $blocks_in_use = array();
-    
+
     // Recursively find all blocks in use (including nested blocks)
-    $find_blocks = function($blocks) use (&$find_blocks, &$blocks_in_use) {
+    $find_blocks = function ($blocks) use (&$find_blocks, &$blocks_in_use) {
         foreach ($blocks as $block) {
             if (!empty($block['blockName'])) {
                 $blocks_in_use[] = $block['blockName'];
@@ -85,35 +85,35 @@ add_action('wp_enqueue_scripts', function() {
             }
         }
     };
-    
+
     $find_blocks($blocks);
     $blocks_in_use = array_unique($blocks_in_use);
-    
+
     // Dequeue unused block assets
     foreach ($registered_blocks as $block_name => $block_type) {
         // Skip if block is in use
         if (in_array($block_name, $blocks_in_use)) {
             continue;
         }
-        
+
         // Dequeue editor and frontend styles
         if (!empty($block_type->style)) {
             wp_dequeue_style($block_type->style);
         }
-        
+
         if (!empty($block_type->editor_style)) {
             wp_dequeue_style($block_type->editor_style);
         }
-        
+
         // Dequeue editor and frontend scripts
         if (!empty($block_type->script)) {
             wp_dequeue_script($block_type->script);
         }
-        
+
         if (!empty($block_type->editor_script)) {
             wp_dequeue_script($block_type->editor_script);
         }
-        
+
         if (!empty($block_type->view_script)) {
             wp_dequeue_script($block_type->view_script);
         }
@@ -146,7 +146,7 @@ add_action('wp_enqueue_scripts', function () {
 /**
  * Prevent block styles from loading in <head> for blocks not in use
  */
-add_filter('render_block', function($block_content, $block) {
+add_filter('render_block', function ($block_content, $block) {
     // You can add custom logic here if needed
     return $block_content;
 }, 10, 2);
@@ -193,24 +193,32 @@ add_action('init', function () {
 
 
 //Synchronize Fields after theme updates
-add_action('upgrader_process_complete', function ($upgrader, $options) {
-    // Solo si se actualizó un tema
-    if ($options['type'] !== 'theme') return;
-
-    // Verificar que ACF esté disponible
+add_action('admin_init', function () {
     if (!function_exists('acf_get_field_groups')) return;
 
-    $child_json_path = get_stylesheet_directory() . '/acf-json';
+    $child_json_path  = get_stylesheet_directory() . '/acf-json';
+    $parent_json_path = get_template_directory() . '/acf-json';
+
+    // Get the latest modified time of JSON files in the parent theme
+    $latest_file_mod = 0;
+    foreach (glob($parent_json_path . '/*.json') ?: [] as $file) {
+        $latest_file_mod = max($latest_file_mod, filemtime($file));
+    }
+
+    // If there are no JSON files in the parent or we've already synced with the latest ones, do nothing
+    $last_synced = get_option('acf_json_last_synced', 0);
+    if ($latest_file_mod <= $last_synced) return;
+
+    // There are new/updated JSON files in the parent theme, let's sync them
     $groups = acf_get_field_groups();
 
     foreach ($groups as $group) {
         if (!isset($group['local']) || $group['local'] !== 'json') continue;
 
-        // Respetar overrides del child theme
+        // Respect child overrides: if there's a child JSON file for this group, skip it
         $child_file = $child_json_path . '/' . $group['key'] . '.json';
         if (file_exists($child_file)) continue;
 
-        // Sincronizar solo grupos desactualizados
         if (
             isset($group['modified'], $group['local_modified']) &&
             $group['modified'] < $group['local_modified']
@@ -220,7 +228,10 @@ add_action('upgrader_process_complete', function ($upgrader, $options) {
             acf_import_field_group($local_field_group);
         }
     }
-}, 10, 2);
+
+    // Save the timestamp of the latest parent JSON file we synced with
+    update_option('acf_json_last_synced', $latest_file_mod, false);
+});
 
 
 // Allow HTML in ACF fields
