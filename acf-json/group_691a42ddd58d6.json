@@ -315,6 +315,35 @@
             "save_options": 0
         },
         {
+            "key": "field_69a643dc54115",
+            "label": "Hide Testimonial Text",
+            "name": "hide_testimonial_text",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_691a9412fc8c7",
+                        "operator": "==",
+                        "value": "testimonial"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "allow_in_bindings": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
             "key": "field_699fc6ac06e18",
             "label": "Posts Title Tag",
             "name": "posts_title_tag",
@@ -774,5 +803,5 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "modified": 1772078802
+    "modified": 1772504068
 }

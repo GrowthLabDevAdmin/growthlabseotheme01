@@ -134,6 +134,7 @@ if (get_field('toggle_block')):
                                                 "content" => $testimonial_content,
                                                 "source" => $testimonial_source,
                                                 "link_url" => $testimonial_source_link,
+                                                "condition" => isset($hide_testimonial_text) ? $hide_testimonial_text : false
                                             ));
                                             break;
 

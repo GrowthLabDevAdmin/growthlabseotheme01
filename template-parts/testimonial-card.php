@@ -42,13 +42,15 @@ if (!defined('ABSPATH')) {
             </div>
 
             <blockquote class="testimonial-card__content">
-                <p>
-                    "<?= $args["content"] ?>"
+                <?php if (isset($args["condition"]) && !$args["condition"]) : ?>
+                    <p>
+                        <?= '"' . $args["content"] . '"' ?>
 
-                    <?php if ($args['link_url']): ?>
-                        <a href="<?= $args['link_url'] ?>" target='_blank'>Read More</a>
-                    <?php endif ?>
-                </p>
+                        <?php if ($args['link_url']): ?>
+                            <a href="<?= $args['link_url'] ?>" target='_blank'>Read More</a>
+                        <?php endif ?>
+                    </p>
+                <?php endif ?>
             </blockquote>
 
             <div class=" testimonial-card__stars">
