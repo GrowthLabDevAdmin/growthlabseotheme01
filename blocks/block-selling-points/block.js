@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+(() => {
   if (document.querySelector(".selling-points__carousel")) {
     var sellingPointsCarousel = new Splide(
       ".selling-points__carousel .splide",
@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
         perMove: 1,
         arrows: true,
         pagination: false,
+        accessibility: true,
+        slideFocus: false,
         mediaQuery: "min",
         breakpoints: {
           [tablet]: {
@@ -18,8 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
             arrows: false,
           },
         },
-      }
+      },
     );
     sellingPointsCarousel.mount();
   }
-});
+})();

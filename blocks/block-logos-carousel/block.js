@@ -1,16 +1,17 @@
-document.addEventListener("DOMContentLoaded", () => {
+(() => {
   const logosCarousels = document.querySelectorAll(
     ".logos-carousel__carousel .splide",
   );
   if (logosCarousels) {
     for (var i = 0; i < logosCarousels.length; i++) {
-
       new Splide(logosCarousels[i], {
         type: "loop",
         perPage: 3,
         perMove: 3,
         arrows: false,
         pagination: true,
+        accessibility: true,
+        slideFocus: false,
         mediaQuery: "min",
         breakpoints: {
           [tablet]: {
@@ -25,4 +26,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }).mount();
     }
   }
-});
+})();

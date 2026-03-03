@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+(() => {
   if (document.querySelector(".trust-cards__carousel")) {
     var trustCardsCarousel = new Splide(".trust-cards__carousel .splide", {
       type: "loop",
@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
       perMove: 1,
       arrows: true,
       pagination: false,
+      accessibility: true,
+      slideFocus: false,
       mediaQuery: "min",
       breakpoints: {
         [tablet]: {
@@ -19,4 +21,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     trustCardsCarousel.mount();
   }
-});
+})();

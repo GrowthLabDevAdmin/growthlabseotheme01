@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+(() => {
   let locationsCarousel = document.querySelectorAll(
     ".locations .locations-cards__carousel",
   );
@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
           perPage: 1,
           arrows: true,
           pagination: false,
+          accessibility: true,
+          slideFocus: false,
           mediaQuery: "min",
           breakpoints: {
             [tablet]: {
@@ -27,4 +29,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-});
+})();

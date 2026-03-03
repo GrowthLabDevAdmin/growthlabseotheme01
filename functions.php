@@ -285,6 +285,16 @@ function inline_main_critical_css()
 }
 add_action('wp_head', 'inline_main_critical_css', 20);
 
+// Register third-party scripts early to ensure they are available as dependencies
+add_action('init', function () {
+    wp_register_script(
+        'splide-js',
+        get_template_directory_uri() . '/js/vendor/splide/splide-min.js',
+        [],
+        '4.1.4',
+        ['strategy' => 'defer', 'in_footer' => true]
+    );
+}, 1);
 
 function growthlabtheme01_scripts()
 {
@@ -311,7 +321,7 @@ function growthlabtheme01_scripts()
     wp_dequeue_script('gform_gravityforms_maps');
 
     // Third party JS scripts.
-    wp_register_script('splide-js', get_template_directory_uri() . '/js/vendor/splide/splide-min.js', array(), '4.1.4', ['strategy' => 'defer', 'in_footer' => true]);
+    wp_enqueue_script('splide-js');
 
     // Main JS scripts.
     wp_enqueue_script(

@@ -2,15 +2,10 @@
   "name": "acf/office-locations",
   "title": "Office Locations",
   "style": ["file:./block-min.css"],
-  "script": ["file:./block-min.js", "splide-js"],
+  "script": ["splide-js", "file:./block-min.js"],
   "category": "growthlabtheme01-blocks",
   "icon": "block-default",
-  "keywords": [
-    "growthlabseo",
-    "carousel",
-    "locations",
-    "custom carousel"
-  ],
+  "keywords": ["growthlabseo", "carousel", "locations", "custom carousel"],
   "acf": {
     "mode": "edit",
     "renderTemplate": "block.php"

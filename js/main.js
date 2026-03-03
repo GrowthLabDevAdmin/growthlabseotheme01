@@ -23,14 +23,14 @@ const hdpi = 1440;
 
 blocksInContent && extractBlocks();
 
+if (
+  footerLocations &&
+  footerLocations.querySelectorAll(".splide__slide").length > 1
+)
+  footerLocationsCarousel();
+
 document.addEventListener("DOMContentLoaded", () => {
   eventListeners();
-
-  if (
-    footerLocations &&
-    footerLocations.querySelectorAll(".splide__slide").length > 1
-  )
-    footerLocationsCarousel();
 
   document.querySelectorAll(".sidebar").forEach((el) => {
     if (!el.querySelector("*")) el.classList.add("is-empty");
