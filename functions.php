@@ -382,6 +382,30 @@ function growthlabtheme01_widgets_init()
             'after_title'   => '</p>',
         )
     );
+
+    register_sidebar(
+        array(
+            'name'          => esc_html__('Default Sidebar Spanish', 'growthlabtheme01'),
+            'id'            => 'sidebar-default-es',
+            'description'   => esc_html__('Add widgets here to appear in the page Spanish sidebar.', 'growthlabtheme01'),
+            'before_widget' => '<div id="%1$s" class="widget %2$s">',
+            'after_widget'  => '</div>',
+            'before_title'  => '<p class="widget-title">',
+            'after_title'   => '</p>',
+        )
+    );
+
+    register_sidebar(
+        array(
+            'name'          => esc_html__('Blog Sidebar Spanish', 'growthlabtheme01'),
+            'id'            => 'sidebar-blog-es',
+            'description'   => esc_html__('Add widgets here to appear in the Blog Spanish sidebar.', 'growthlabtheme01'),
+            'before_widget' => '<div id="%1$s" class="widget %2$s">',
+            'after_widget'  => '</div>',
+            'before_title'  => '<p class="widget-title">',
+            'after_title'   => '</p>',
+        )
+    );
 }
 
 add_action('widgets_init', 'growthlabtheme01_widgets_init');

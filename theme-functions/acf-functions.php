@@ -193,7 +193,7 @@ add_action('init', function () {
 
 
 //Synchronize Fields after theme updates
-/* add_action('admin_init', function () {
+add_action('admin_init', function () {
     if (!function_exists('acf_get_field_groups')) return;
 
     $child_json_path  = get_stylesheet_directory() . '/acf-json';
@@ -232,7 +232,7 @@ add_action('init', function () {
     // Save the timestamp of the latest parent JSON file we synced with
     update_option('acf_json_last_synced', $latest_file_mod, false);
 });
- */
+
 
 // Allow HTML in ACF fields
 add_filter('acf/shortcode/allow_unsafe_html', function () {
