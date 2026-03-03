@@ -82,6 +82,22 @@ if (!function_exists('growthlabtheme01_setup')) {
             return $sizes;
         }, 999);
 
+        // Add custom image sizes to the media selector
+        add_filter('image_size_names_choose', function ($sizes) {
+            return array_merge([
+                'thumbnail'    => __('Miniatura'),
+                'medium'       => __('Mediano'),
+                'medium_large' => __('Mediano grande'),
+                'large'        => __('Grande'),
+                'full'         => __('Tamaño completo'),
+                // Tus tamaños personalizados:
+                'cover-desktop'  => __('Cover Desktop (1920×1080)'),
+                'cover-tablet'   => __('Cover Tablet (1280×720)'),
+                'cover-mobile'   => __('Cover Mobile (800×533)'),
+                'featured-small' => __('Featured Small (400×267)'),
+            ], $sizes);
+        });
+
         // Tipography and Color Support
         add_theme_support('appearance-tools');
 
