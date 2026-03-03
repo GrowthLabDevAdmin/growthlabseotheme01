@@ -301,7 +301,7 @@
                 "class": "",
                 "id": ""
             },
-            "layout": "row",
+            "layout": "block",
             "pagination": 0,
             "min": 0,
             "max": 0,
@@ -396,7 +396,7 @@
                         "class": "",
                         "id": ""
                     },
-                    "layout": "row",
+                    "layout": "block",
                     "min": 0,
                     "max": 0,
                     "collapsed": "field_691cb9a8e133f",
@@ -545,5 +545,5 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "modified": 1772496874
+    "modified": 1772502994
 }

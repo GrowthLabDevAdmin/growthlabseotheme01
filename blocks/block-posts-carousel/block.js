@@ -16,20 +16,22 @@ document.addEventListener("DOMContentLoaded", () => {
           mediaQuery: "min",
           breakpoints: {
             [tablet]: {
-              perPage:
-                carouselType === "case-result" ||
-                carouselType === "testimonial" ||
-                carouselType === "post"
+              perPage: splideElement.closest(".sidebar")
+                ? 1
+                : carouselType === "case-result" ||
+                    carouselType === "testimonial" ||
+                    carouselType === "post"
                   ? 2
                   : 3,
             },
             [ldpi]: {
-              perPage:
-                carouselType === "case-result"
+              perPage: splideElement.closest(".sidebar")
+                ? 1
+                : carouselType === "case-result"
                   ? 3
                   : carouselType === "testimonial" || carouselType === "post"
-                  ? 2
-                  : 4,
+                    ? 2
+                    : 4,
             },
           },
         }).mount();
