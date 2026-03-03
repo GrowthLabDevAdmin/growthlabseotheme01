@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 
 <aside class="sidebar sidebar--blog <?= $args["classes"] ?>">
 
-    <?php dynamic_sidebar("sidebar-blog"  . filterContentByLanguage() ? "-es" : "") ?>
+    <?php dynamic_sidebar("sidebar-blog" . (filterContentByLanguage() ? "-es" : "")) ?>
 
     <?php
     if (get_field("menus", $args["ID"]) && have_rows("menus", $args["ID"])):

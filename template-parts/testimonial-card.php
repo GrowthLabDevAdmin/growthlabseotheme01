@@ -41,8 +41,8 @@ if (!defined('ABSPATH')) {
                 </div>
             </div>
 
-            <blockquote class="testimonial-card__content">
-                <?php if (isset($args["condition"]) && !$args["condition"]) : ?>
+            <?php if (isset($args["condition"]) && !$args["condition"] && isset($args["content"]) && $args["content"] !== "") : ?>
+                <blockquote class="testimonial-card__content">
                     <p>
                         <?= '"' . $args["content"] . '"' ?>
 
@@ -50,8 +50,8 @@ if (!defined('ABSPATH')) {
                             <a href="<?= $args['link_url'] ?>" target='_blank'>Read More</a>
                         <?php endif ?>
                     </p>
-                <?php endif ?>
-            </blockquote>
+                </blockquote>
+            <?php endif ?>
 
             <div class=" testimonial-card__stars">
                 <?php
