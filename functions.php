@@ -54,7 +54,7 @@ if (!function_exists('growthlabtheme01_setup')) {
 		*
 		* @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
 		*/
-        add_theme_support('post-thumbnails', array('post', 'page', "team"));
+        add_theme_support('post-thumbnails');
 
         // Custom Logo Support
         $defaults = array(
