@@ -4,7 +4,7 @@
   }
   ?>
 
-  <footer id="site-footer" class="site-footer">
+  <footer role="contentinfo" id="site-footer" class="site-footer">
 
     <?php
     $es = filterContentByLanguage() ? '_es' : '';

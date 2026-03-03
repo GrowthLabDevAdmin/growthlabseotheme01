@@ -13,7 +13,7 @@ $options = get_field_options('options' . $es);
 
     <div class="blog__wrapper container">
 
-        <main class="blog__main border-box">
+        <main role="main" class="blog__main border-box">
 
             <div class="blog__loop">
 

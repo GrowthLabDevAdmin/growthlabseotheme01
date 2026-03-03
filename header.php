@@ -29,12 +29,12 @@ if (!defined('ABSPATH')) {
     $phone_number = $contact_phone ?: $main_phone_number;
     ?>
 
-    <header class="site-header <?= !is_404() && get_field('hero_style') !== "nohero" && $sticky_header ? "site-header--sticky" : "" ?>">
+    <header role="banner" class="site-header <?= !is_404() && get_field('hero_style') !== "nohero" && $sticky_header ? "site-header--sticky" : "" ?>">
 
         <div class="site-header__wrapper container">
 
             <div class="site-header__logo">
-                <a href="<?php echo esc_url(home_url('/' . $es)); ?>" class="site-logo">
+                <a href="<?php echo esc_url(home_url('/' . $es)); ?>" class="site-logo" aria-label="<?php echo esc_attr(get_bloginfo('name')); ?>">
                     <?php
                     if (function_exists('the_custom_logo') && has_custom_logo()) {
                         $custom_logo_id = get_theme_mod('custom_logo');
@@ -62,6 +62,7 @@ if (!defined('ABSPATH')) {
                         array(
                             'theme_location'  => 'main' . $es,
                             'container'          => 'nav',
+                            'container_role'     => 'navigation',
                             'container_class' => 'main-nav',
                             'menu_class'      => 'main-nav__menu',
                             'items_wrap'      => '<ul class="%2$s">%3$s</ul>',
@@ -75,7 +76,7 @@ if (!defined('ABSPATH')) {
 
             <?php if ($cta_button): ?>
                 <div class="site-header__cta">
-                    <a href="<?= $cta_button['url'] ?>" class="cta-button btn btn--tertiary btn--arrow" target="<?= $cta_button['target'] ?>">
+                    <a href="<?= esc_url($cta_button['url']) ?>" class="cta-button btn btn--tertiary btn--arrow" target="<?= esc_attr($cta_button['target']) ?>" aria-label="<?= esc_attr($cta_button['title']) ?>">
 
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="cta-button__icon">
                             <g clip-path="url(#clip0_4184_2633)">
@@ -106,7 +107,7 @@ if (!defined('ABSPATH')) {
                         <?php if ($top_callout_first_line): ?>
                             <span><?= $top_callout_first_line ?></span>
                         <?php endif; ?>
-                        <a href="tel:+1<?= get_flat_number($phone_number) ?>" class="callout__phone"><?= $phone_number ?></a>
+                        <a href="tel:+1<?= get_flat_number($phone_number) ?>" class="callout__phone" aria-label="<?= esc_attr($phone_number) ?>"><?= $phone_number ?></a>
                         <?php if ($top_callout_second_line): ?>
                             <span><?= $top_callout_second_line ?></span>
                         <?php endif; ?>

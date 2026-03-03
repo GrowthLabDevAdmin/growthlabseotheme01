@@ -23,7 +23,7 @@ $icon_dir = get_template_directory() . '/assets/icons/';
         <?php $url = $options[ $field_key ] ?? ''; ?>
         <?php if (!empty($url)) : ?>
             <li>
-                <a href="<?= esc_url($url) ?>" target="_blank" rel="noopener noreferrer">
+                <a href="<?= esc_url($url) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= esc_attr(ucwords(str_replace(['_url','_'],['',' '], $field_key))) ?>">
                     <?php
                     $icon_path = $icon_dir . $icon_file;
                     if (file_exists($icon_path)) {

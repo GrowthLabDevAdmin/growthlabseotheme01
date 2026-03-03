@@ -37,7 +37,7 @@ $hero_title_tag = $hero_title_tag ?? null;
             ?>
 
             <?php if ($cta_button): ?>
-                <a href="<?= $cta_button['url'] ?>" target="<?= $cta_button['target'] ?>" class="hero__btn btn btn--tertiary btn--arrow">
+                <a href="<?= esc_url($cta_button['url']) ?>" target="<?= esc_attr($cta_button['target']) ?>" class="hero__btn btn btn--tertiary btn--arrow" aria-label="<?= esc_attr($cta_button['title']) ?>">
 
                     <span><?= $cta_button['title'] ?>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

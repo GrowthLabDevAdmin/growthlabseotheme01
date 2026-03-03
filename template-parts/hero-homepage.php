@@ -43,7 +43,7 @@ if (!$bg_mobile) $bg_mobile = [];
 
                     <?php if ($cta_button): ?>
                         <div class="content-box__btn">
-                            <a href="<?= $cta_button['url'] ?>" target="<?= $cta_button['target'] ?>" class="btn btn--tertiary btn--arrow">
+                            <a href="<?= esc_url($cta_button['url']) ?>" target="<?= esc_attr($cta_button['target']) ?>" class="btn btn--tertiary btn--arrow" aria-label="<?= esc_attr($cta_button['title']) ?>">
 
                                 <span><?= $cta_button['title'] ?>
 

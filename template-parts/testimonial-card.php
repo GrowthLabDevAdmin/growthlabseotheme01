@@ -47,7 +47,7 @@ if (!defined('ABSPATH')) {
                         <?= '"' . $args["content"] . '"' ?>
 
                         <?php if ($args['link_url']): ?>
-                            <a href="<?= $args['link_url'] ?>" target='_blank'>Read More</a>
+                            <a href="<?= esc_url($args['link_url']) ?>" target='_blank' aria-label="Read More">Read More</a>
                         <?php endif ?>
                     </p>
                 </blockquote>

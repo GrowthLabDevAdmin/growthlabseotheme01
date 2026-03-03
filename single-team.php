@@ -9,7 +9,7 @@ foreach (get_fields() as $key => $value) $$key = $value;
 
         <?php if (have_posts()) : while (have_posts()) : the_post(); ?>
 
-                <aside class="single__sidebar single-team__sidebar border-box formatted-text">
+                <aside role="complementary" class="single__sidebar single-team__sidebar border-box formatted-text">
                     <?php
                     if (has_post_thumbnail()) {
                         img_print_picture_tag(img: get_the_post_thumbnail_url(), max_size: "cover-mobile", classes: "single-team__picture");

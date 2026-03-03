@@ -18,7 +18,7 @@ if (!$args["tag"] || $args["tag"] === "") {
 
         <?php
         if ($args['link_url']) {
-            echo "<a href=" . $args['link_url'] . " class='post-card__pic-wrapper' target=" . $args['link_target'] . ">";
+            echo '<a href="' . esc_url($args['link_url']) . '" class="post-card__pic-wrapper" target="' . esc_attr($args['link_target']) . '" aria-label="' . esc_attr($args['title']) . '">';
         } else {
             echo "<div class='post-card__pic-wrapper'>";
         }
@@ -46,7 +46,7 @@ if (!$args["tag"] || $args["tag"] === "") {
 
             <?php if ($args['link_url']): ?>
                 <div class="post-card__btn">
-                    <a href="<?= $args['link_url'] ?>" target="<?= $args['link_target'] ?>" class="btn btn--secondary">
+                    <a href="<?= esc_url($args['link_url']) ?>" target="<?= esc_attr($args['link_target']) ?>" class="btn btn--secondary" aria-label="Read More">
                         <span>Read More</span>
                     </a>
                 </div>
