@@ -15,15 +15,19 @@ if (get_field('toggle_block')):
 
             <div class="locations__content tx-center">
                 <?php
-                print_title($title, $title_tag, "locations__title");
-                get_template_part('template-parts/ampersand', 'separator', array('classes' => 'locations__separator'));
-                echo $main_content;
+                if (isset($title) && $title) {
+                    print_title($title, $title_tag, "locations__title");
+                    get_template_part('template-parts/ampersand', 'separator', array('classes' => 'locations__separator'));
+                }
+                if (isset($main_content) && $main_content) {
+                    echo $main_content;
+                }
                 ?>
             </div>
 
             <div class="locations-cards">
 
-                <?php if (isset($first_card) && $first_card['content'] && $locations_view_structure === "carousel"): ?>
+                <?php if (!$hide_first_card && isset($first_card) && $first_card['content'] && $locations_view_structure === "carousel"): ?>
                     <div class="location-card location-card--first">
                         <div class="location-card__wrapper">
                             <div class="location-card__inner flex-center">

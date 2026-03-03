@@ -301,11 +301,11 @@
                 "class": "",
                 "id": ""
             },
-            "layout": "block",
+            "layout": "row",
             "pagination": 0,
             "min": 0,
             "max": 0,
-            "collapsed": "",
+            "collapsed": "field_691cbc2a87723",
             "button_label": "Add Row",
             "rows_per_page": 20,
             "sub_fields": [
@@ -396,10 +396,10 @@
                         "class": "",
                         "id": ""
                     },
-                    "layout": "block",
+                    "layout": "row",
                     "min": 0,
                     "max": 0,
-                    "collapsed": "",
+                    "collapsed": "field_691cb9a8e133f",
                     "button_label": "Add Row",
                     "rows_per_page": 20,
                     "sub_fields": [
@@ -545,5 +545,5 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "modified": 1765174007
+    "modified": 1772496874
 }

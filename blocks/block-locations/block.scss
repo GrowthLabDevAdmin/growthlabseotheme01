@@ -79,6 +79,11 @@
   }
 
   &__carousel {
+    &:only-child {
+      width: 100%;
+      flex: 0 0 100%;
+    }
+
     width: calc(50% - var(--sp-xsm) / 4);
     flex: 0 0 calc(50% - var(--sp-xsm) / 4);
 
@@ -125,6 +130,25 @@
       margin-bottom: 0;
       padding: 0 0;
       flex: 1 0 calc(20% - ((var(--sp-xsm) * 4) / 5)) !important;
+    }
+  }
+}
+
+.sidebar {
+  .locations {
+    padding: 0;
+
+    &__wrapper {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 0;
+      padding-inline: 0;
+    }
+  }
+
+  .locations-cards {
+    &__arrows {
+      width: 100% !important;
     }
   }
 }

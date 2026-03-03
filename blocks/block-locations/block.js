@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   let locationsCarousel = document.querySelectorAll(
-    ".locations .locations-cards__carousel"
+    ".locations .locations-cards__carousel",
   );
 
   if (locationsCarousel.length > 0) {
@@ -10,15 +10,16 @@ document.addEventListener("DOMContentLoaded", () => {
         let locationsCarouselInstance = new Splide(splideElement, {
           type: "loop",
           perMove: 1,
-          perPage: 4,
+          perPage: 1,
           arrows: true,
           pagination: false,
+          mediaQuery: "min",
           breakpoints: {
             [tablet]: {
-              perPage: 1,
+              perPage: splideElement.closest(".sidebar") ? 1 : 2,
             },
             [ldpi]: {
-              perPage: 2,
+              perPage: splideElement.closest(".sidebar") ? 1 : 4,
             },
           },
         });

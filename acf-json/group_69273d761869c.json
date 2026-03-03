@@ -257,6 +257,27 @@
             "delay": 0
         },
         {
+            "key": "field_69a6262d46d9a",
+            "label": "Hide First Card",
+            "name": "hide_first_card",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "allow_in_bindings": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
             "key": "field_6927558d20847",
             "label": "First Card",
             "name": "first_card",
@@ -267,8 +288,9 @@
             "conditional_logic": [
                 [
                     {
-                        "field": "field_6927558d20842",
-                        "operator": "!="
+                        "field": "field_69a6262d46d9a",
+                        "operator": "!=",
+                        "value": "1"
                     }
                 ]
             ],
@@ -631,5 +653,5 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "modified": 1764486183
+    "modified": 1772496462
 }

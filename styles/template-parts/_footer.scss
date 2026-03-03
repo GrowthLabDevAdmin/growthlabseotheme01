@@ -171,6 +171,8 @@ section.contact-form--side-pic:has(+ .site-footer .contact-form-footer) {
       margin-bottom: 9rem;
     }
 
+    $cards: &;
+
     &:has(.location-card:only-child) {
       width: 100%;
       margin-bottom: 0 !important;
@@ -197,6 +199,15 @@ section.contact-form--side-pic:has(+ .site-footer .contact-form-footer) {
       flex: 0 0 100%;
       /*  width: calc(50% - var(--sp-xsm) / 4);
       flex: 0 0 calc(50% - var(--sp-xsm) / 4); */
+
+      &:only-child {
+        width: 100%;
+        flex: 0 0 100%;
+
+        .locations-cards__arrows {
+          width: 100% !important;
+        }
+      }
 
       @media (min-width: v.$tablet) {
         width: calc((2 * (100% / 3)) - var(--sp-xsm) / 4);

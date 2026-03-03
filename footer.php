@@ -74,16 +74,20 @@
 
           <div class="locations-cards">
 
-            <div class="location-card location-card--first">
-              <div class="location-card__wrapper">
-                <div class="location-card__inner flex-center">
-                  <?php if ($first_card['logo']) img_print_picture_tag(img: $first_card['logo'], max_size: "thumbnail",  classes: "location-card__logo"); ?>
-                  <div class="location-card__content tx-center">
-                    <?= $first_card['content'] ?>
+            <?php if (!$hide_first_card && isset($first_card) && $first_card['content']): ?>
+
+              <div class="location-card location-card--first">
+                <div class="location-card__wrapper">
+                  <div class="location-card__inner flex-center">
+                    <?php if ($first_card['logo']) img_print_picture_tag(img: $first_card['logo'], max_size: "thumbnail",  classes: "location-card__logo"); ?>
+                    <div class="location-card__content tx-center">
+                      <?= $first_card['content'] ?>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+
+            <?php endif; ?>
 
             <?php
             $locations = $options['offices'];
@@ -103,7 +107,7 @@
                       }
                       ?>
 
-                      <?php if (count($locations) > 1 ): ?>
+                      <?php if (count($locations) > 1): ?>
                       </div>
                     </div>
                     <?php

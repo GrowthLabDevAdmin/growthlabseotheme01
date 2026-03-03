@@ -1,23 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
   const logosCarousels = document.querySelectorAll(
-    ".logos-carousel__carousel .splide"
+    ".logos-carousel__carousel .splide",
   );
   if (logosCarousels) {
     for (var i = 0; i < logosCarousels.length; i++) {
+
       new Splide(logosCarousels[i], {
         type: "loop",
-        perPage: 7,
-        perMove: 7,
+        perPage: 3,
+        perMove: 3,
         arrows: false,
         pagination: true,
+        mediaQuery: "min",
         breakpoints: {
           [tablet]: {
-            perPage: 3,
-            perMove: 3,
+            perPage: logosCarousels[i].closest(".sidebar") ? 3 : 5,
+            perMove: logosCarousels[i].closest(".sidebar") ? 3 : 5,
           },
           [ldpi]: {
-            perPage: 5,
-            perMove: 5,
+            perPage: logosCarousels[i].closest(".sidebar") ? 3 : 7,
+            perMove: logosCarousels[i].closest(".sidebar") ? 3 : 7,
           },
         },
       }).mount();
