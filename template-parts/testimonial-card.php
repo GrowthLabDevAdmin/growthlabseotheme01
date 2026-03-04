@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
         <div class="testimonial-card__inner">
 
             <div class="testimonial-card__header">
-                <?php if (isset($args['picture']) && $args['picture']) img_print_picture_tag(img: $args['picture'], classes: "testimonial-card__pic"); ?>
+                <?php if (isset($args['picture']) && $args['picture']) img_print_picture_tag(img: $args['picture'], max_size: "thumbnail", classes: "testimonial-card__pic"); ?>
                 <?php if ($args["source"]): ?>
                     <div class="testimonial-card__src">
                         <?php
