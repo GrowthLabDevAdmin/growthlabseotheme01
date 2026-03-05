@@ -215,28 +215,53 @@ add_action('admin_notices', function () {
     );
     if (empty($parent_json_files)) return;
 
-    $content_hash = md5(implode('', array_map('md5_file', $parent_json_files)));
-    if (get_option('acf_json_parent_sync_hash', '') === $content_hash) return;
+    try {
+        $content_hash = md5(implode('', array_map('md5_file', $parent_json_files)));
+        if (get_option('acf_json_parent_sync_hash', '') === $content_hash) return;
 
-    define('ACF_DOING_SYNC', true);
-    update_option('acf_json_parent_sync_hash', $content_hash, false);
+        // Mutex: si otro request ya está sincronizando, salir
+        if (get_transient('acf_sync_lock')) {
+            error_log('[ACF sync] skipped — another sync is already running');
+            return;
+        }
+        set_transient('acf_sync_lock', true, 30);
 
-    // Usar el sync nativo de ACF en lugar de acf_import_field_group
-    $groups = acf_get_field_groups();
+        define('ACF_DOING_SYNC', true);
+        update_option('acf_json_parent_sync_hash', $content_hash, false);
 
-    foreach ($groups as $group) {
-        // Solo grupos que vienen de JSON y tienen sync disponible
-        if (empty($group['local']) || $group['local'] !== 'json') continue;
-        if (empty($group['local_modified']) || $group['local_modified'] <= $group['modified']) continue;
+        error_log('[ACF sync] starting at ' . current_time('mysql'));
 
-        // Respetar overrides del child theme
-        if ($is_child_theme && file_exists($child_json_path . '/' . $group['key'] . '.json')) continue;
+        $groups = acf_get_field_groups();
+        $synced = 0;
+        $skipped = 0;
 
-        $local = acf_get_local_field_group($group['key']);
-        if (empty($local)) continue;
+        foreach ($groups as $group) {
+            if (empty($group['local']) || $group['local'] !== 'json') continue;
+            if (empty($group['local_modified']) || $group['local_modified'] <= $group['modified']) continue;
 
-        $local['fields'] = acf_get_local_fields($group['key']);
-        acf_import_field_group($local);
+            if ($is_child_theme && file_exists($child_json_path . '/' . $group['key'] . '.json')) {
+                error_log('[ACF sync] skipped (child override): ' . ($group['title'] ?? $group['key']));
+                $skipped++;
+                continue;
+            }
+
+            $local = acf_get_local_field_group($group['key']);
+            if (empty($local)) {
+                error_log('[ACF sync] warning — local group not found: ' . $group['key']);
+                continue;
+            }
+
+            $local['fields'] = acf_get_local_fields($group['key']);
+            acf_import_field_group($local);
+            error_log('[ACF sync] imported: ' . ($group['title'] ?? $group['key']));
+            $synced++;
+        }
+
+        delete_transient('acf_sync_lock');
+        error_log('[ACF sync] completed — synced: ' . $synced . ', skipped: ' . $skipped);
+    } catch (Throwable $e) {
+        delete_transient('acf_sync_lock');
+        error_log('[ACF sync] error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
     }
 });
 
