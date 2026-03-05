@@ -22,7 +22,11 @@ if (get_field('toggle_block')):
             <?php if ($box_position === "within" && $block_style === "light"): ?>
 
                 <div class="cta-box__decoration">
-                    <?php include get_stylesheet_directory() . "/assets/img/separator-symbol.svg" ?>
+                    <?php if ($options["logo_symbol"]) {
+                        img_print_picture_tag(img: $options["logo_symbol"], max_size: "medium");
+                    } else {
+                        include get_stylesheet_directory() . '/assets/img/ampersand-symbol.svg';
+                    } ?>
                 </div>
 
             <?php endif ?>
