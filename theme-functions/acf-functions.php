@@ -205,6 +205,8 @@ add_action('admin_notices', function () {
     if (defined('ACF_DOING_SYNC')) return;
     if (!function_exists('acf_get_field_groups')) return;
 
+    $memory_start = memory_get_usage();
+
     $parent_json_path = get_template_directory() . '/acf-json';
     $child_json_path  = get_stylesheet_directory() . '/acf-json';
     $is_child_theme   = $child_json_path !== $parent_json_path;
@@ -213,15 +215,23 @@ add_action('admin_notices', function () {
         glob($parent_json_path . '/group_*.json') ?: [],
         fn($f) => is_readable($f)
     );
-    if (empty($parent_json_files)) return;
+
+    if (empty($parent_json_files)) {
+        error_log('[ACF sync] OK — no JSON files found, nothing to sync');
+        return;
+    }
 
     try {
         $content_hash = md5(implode('', array_map('md5_file', $parent_json_files)));
-        if (get_option('acf_json_parent_sync_hash', '') === $content_hash) return;
+
+        if (get_option('acf_json_parent_sync_hash', '') === $content_hash) {
+            error_log('[ACF sync] OK — hash unchanged, sync not needed');
+            return;
+        }
 
         // Mutex: si otro request ya está sincronizando, salir
         if (get_transient('acf_sync_lock')) {
-            error_log('[ACF sync] skipped — another sync is already running');
+            error_log('[ACF sync] OK — skipped, another sync is already running (mutex active)');
             return;
         }
         set_transient('acf_sync_lock', true, 30);
@@ -230,10 +240,13 @@ add_action('admin_notices', function () {
         update_option('acf_json_parent_sync_hash', $content_hash, false);
 
         error_log('[ACF sync] starting at ' . current_time('mysql'));
+        error_log('[ACF sync] files to evaluate: ' . count($parent_json_files));
+        error_log('[ACF sync] mode: ' . ($is_child_theme ? 'child theme active' : 'parent theme only'));
 
-        $groups = acf_get_field_groups();
-        $synced = 0;
-        $skipped = 0;
+        $groups   = acf_get_field_groups();
+        $synced   = 0;
+        $skipped  = 0;
+        $warnings = 0;
 
         foreach ($groups as $group) {
             if (empty($group['local']) || $group['local'] !== 'json') continue;
@@ -247,7 +260,8 @@ add_action('admin_notices', function () {
 
             $local = acf_get_local_field_group($group['key']);
             if (empty($local)) {
-                error_log('[ACF sync] warning — local group not found: ' . $group['key']);
+                error_log('[ACF sync] WARNING — local group not found: ' . $group['key']);
+                $warnings++;
                 continue;
             }
 
@@ -257,11 +271,22 @@ add_action('admin_notices', function () {
             $synced++;
         }
 
+        $memory_used = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
+        $memory_peak = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
+
         delete_transient('acf_sync_lock');
-        error_log('[ACF sync] completed — synced: ' . $synced . ', skipped: ' . $skipped);
+
+        if ($warnings === 0) {
+            error_log('[ACF sync] OK — completed successfully. synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: 0');
+        } else {
+            error_log('[ACF sync] COMPLETED WITH WARNINGS — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings);
+        }
+
+        error_log('[ACF sync] memory used: ' . $memory_used . 'MB | peak: ' . $memory_peak . 'MB | lock released');
     } catch (Throwable $e) {
         delete_transient('acf_sync_lock');
-        error_log('[ACF sync] error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+        error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+        error_log('[ACF sync] lock released after error');
     }
 });
 
