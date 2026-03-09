@@ -257,6 +257,20 @@ add_action('admin_notices', function () {
 
             $local['fields'] = acf_get_local_fields($group['key']);
             acf_import_field_group($local);
+            $local['fields'] = acf_get_local_fields($group['key']);
+            acf_import_field_group($local);
+
+            // Aplicar estado active/inactive manualmente ya que ACF no lo hace durante el import
+            if (isset($local['active']) && $local['active'] === false) {
+                wp_update_post([
+                    'ID'          => $local['ID'] ?? acf_get_field_group($local['key'])['ID'] ?? 0,
+                    'post_status' => 'acf-disabled',
+                ]);
+                error_log('[ACF sync] disabled: ' . ($group['title'] ?? $group['key']));
+            } else {
+                error_log('[ACF sync] imported: ' . ($group['title'] ?? $group['key']));
+            }
+
             error_log('[ACF sync] imported: ' . ($group['title'] ?? $group['key']));
             $synced++;
         }
