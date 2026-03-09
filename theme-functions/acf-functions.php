@@ -257,8 +257,6 @@ add_action('admin_notices', function () {
 
             $local['fields'] = acf_get_local_fields($group['key']);
             acf_import_field_group($local);
-            $local['fields'] = acf_get_local_fields($group['key']);
-            acf_import_field_group($local);
 
             // Aplicar estado active/inactive manualmente ya que ACF no lo hace durante el import
             if (isset($local['active']) && $local['active'] === false) {
@@ -271,7 +269,6 @@ add_action('admin_notices', function () {
                 error_log('[ACF sync] imported: ' . ($group['title'] ?? $group['key']));
             }
 
-            error_log('[ACF sync] imported: ' . ($group['title'] ?? $group['key']));
             $synced++;
         }
 
