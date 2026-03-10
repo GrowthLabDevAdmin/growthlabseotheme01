@@ -217,6 +217,7 @@ add_action('admin_notices', function () {
 
     try {
         $content_hash = md5(implode('', array_map('md5_file', $parent_json_files)));
+        wp_cache_delete('acf_json_parent_sync_hash', 'options');
         if (get_option('acf_json_parent_sync_hash', '') === $content_hash) return;
 
         if (get_transient('acf_sync_lock')) {
@@ -226,6 +227,7 @@ add_action('admin_notices', function () {
         set_transient('acf_sync_lock', true, 30);
 
         define('ACF_DOING_SYNC', true);
+        wp_cache_delete('acf_json_parent_sync_hash', 'options');
         update_option('acf_json_parent_sync_hash', $content_hash, 'no');
 
         error_log('[ACF sync] starting at ' . current_time('mysql'));
@@ -317,6 +319,7 @@ add_action('admin_notices', function () {
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
 });
+
 // Allow HTML in ACF fields
 add_filter('acf/shortcode/allow_unsafe_html', function () {
     return true;
