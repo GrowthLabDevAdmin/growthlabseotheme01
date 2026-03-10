@@ -287,53 +287,7 @@
             "collapsed": "",
             "button_label": "Add Row",
             "rows_per_page": 20,
-            "sub_fields": [
-                {
-                    "key": "field_690bd247fc644",
-                    "label": "Logo",
-                    "name": "logo",
-                    "aria-label": "",
-                    "type": "image",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "return_format": "array",
-                    "library": "all",
-                    "min_width": "",
-                    "min_height": "",
-                    "min_size": "",
-                    "max_width": "",
-                    "max_height": "",
-                    "max_size": "",
-                    "mime_types": "",
-                    "allow_in_bindings": 0,
-                    "preview_size": "medium",
-                    "parent_repeater": "field_690bd23afc643"
-                },
-                {
-                    "key": "field_690be8a7fc645",
-                    "label": "Link",
-                    "name": "link",
-                    "aria-label": "",
-                    "type": "link",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "return_format": "array",
-                    "allow_in_bindings": 0,
-                    "parent_repeater": "field_690bd23afc643"
-                }
-            ]
+            "sub_fields": []
         }
     ],
     "location": [
@@ -355,5 +309,6 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "modified": 1772677321
+    "modified": 1773108373,
+    "local_file": "C:UsersturokDesktopGrowthLab-Themestheme-01\/wp-content\/themes\/gorwthlabseotheme01\/acf-json\/group_690bcfde44263.json"
 }
