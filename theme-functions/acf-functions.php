@@ -240,7 +240,6 @@ add_action('admin_notices', function () {
 
         foreach ($groups as $group) {
             if (empty($group['local']) || $group['local'] !== 'json') continue;
-            if (empty($group['local_modified']) || $group['local_modified'] <= $group['modified']) continue;
 
             if ($is_child_theme && file_exists($child_json_path . '/' . $group['key'] . '.json')) {
                 error_log('[ACF sync] skipped (child override): ' . ($group['title'] ?? $group['key']));
