@@ -309,22 +309,10 @@ add_action('admin_notices', function () {
 
         delete_transient('acf_sync_lock');
 
-        if ($synced > 0 && function_exists('acf_reset_store')) {
-            acf_reset_store('fields');
-            acf_reset_store('field-groups');
-        }
     } catch (Throwable $e) {
         delete_transient('acf_sync_lock');
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
-});
-
-add_action('admin_notices', function () {
-    if (empty($_GET['acf_synced'])) return;
-    $count = (int) $_GET['acf_synced'];
-    echo '<div class="notice notice-success is-dismissible"><p>';
-    echo '<strong>ACF Sync:</strong> ' . $count . ' field ' . ($count === 1 ? 'group' : 'groups') . ' synchronized successfully.';
-    echo '</p></div>';
 });
 
 // Allow HTML in ACF fields
