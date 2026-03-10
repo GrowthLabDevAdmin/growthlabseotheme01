@@ -303,18 +303,16 @@ add_action('admin_notices', function () {
         $memory_used = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
         $memory_peak = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
+        delete_transient('acf_sync_lock');
+
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
         error_log('[ACF sync] ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings);
         error_log('[ACF sync] memory: ' . $memory_used . 'MB used | ' . $memory_peak . 'MB peak');
-
-        delete_transient('acf_sync_lock');
-
     } catch (Throwable $e) {
         delete_transient('acf_sync_lock');
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
 });
-
 // Allow HTML in ACF fields
 add_filter('acf/shortcode/allow_unsafe_html', function () {
     return true;
