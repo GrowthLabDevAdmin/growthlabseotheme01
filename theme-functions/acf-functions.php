@@ -239,12 +239,15 @@ add_action('admin_notices', function () {
         // Una sola query para obtener todos los IDs existentes
         global $wpdb;
         $rows = $wpdb->get_results(
-            "SELECT ID, post_name FROM {$wpdb->posts}
-             WHERE post_type = 'acf-field-group'
-             AND post_status IN ('publish', 'acf-disabled', 'trash')",
-            OBJECT_K
+            "SELECT MIN(ID) as ID, post_name FROM {$wpdb->posts}
+     WHERE post_type = 'acf-field-group'
+     AND post_status IN ('publish', 'acf-disabled', 'trash')
+     GROUP BY post_name"
         );
-        $existing_ids_by_name = array_map(fn($r) => (int) $r->ID, $rows);
+        $existing_ids_by_name = [];
+        foreach ($rows as $r) {
+            $existing_ids_by_name[$r->post_name] = (int) $r->ID;
+        }
 
         $processed_keys = [];
 
