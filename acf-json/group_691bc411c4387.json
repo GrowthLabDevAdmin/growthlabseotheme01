@@ -44,52 +44,7 @@
             "collapsed": "",
             "button_label": "Add Row",
             "rows_per_page": 20,
-            "sub_fields": [
-                {
-                    "key": "field_691bc6275d07c",
-                    "label": "Heading",
-                    "name": "heading",
-                    "aria-label": "",
-                    "type": "text",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "default_value": "",
-                    "maxlength": "",
-                    "allow_in_bindings": 0,
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "parent_repeater": "field_691bc4c35d07b"
-                },
-                {
-                    "key": "field_691bc6375d07d",
-                    "label": "Content",
-                    "name": "content",
-                    "aria-label": "",
-                    "type": "wysiwyg",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "default_value": "",
-                    "allow_in_bindings": 0,
-                    "tabs": "all",
-                    "toolbar": "full",
-                    "media_upload": 1,
-                    "delay": 0,
-                    "parent_repeater": "field_691bc4c35d07b"
-                }
-            ]
+            "sub_fields": []
         }
     ],
     "location": [
@@ -102,11 +57,7 @@
         ]
     ],
     "menu_order": 0,
-<<<<<<< HEAD
-    "position": "side",
-=======
     "position": "normal",
->>>>>>> 1a1c395d1b87d8763cde298b0961287da44b9e95
     "style": "default",
     "label_placement": "top",
     "instruction_placement": "label",
@@ -115,9 +66,6 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-<<<<<<< HEAD
-    "modified": 1763428849
-=======
-    "modified": 1767511742
->>>>>>> 1a1c395d1b87d8763cde298b0961287da44b9e95
+    "modified": 1773112547,
+    "local_file": "C:UsersturokDesktopGrowthLab-Themestheme-01\/wp-content\/themes\/gorwthlabseotheme01\/acf-json\/group_691bc411c4387.json"
 }
