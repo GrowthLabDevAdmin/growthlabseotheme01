@@ -228,7 +228,8 @@ add_action('admin_notices', function () {
         set_transient('acf_sync_lock', true, 30);
 
         define('ACF_DOING_SYNC', true);
-        update_option('acf_json_parent_sync_hash', $content_hash, false);
+        update_option('acf_json_parent_sync_hash', $content_hash, 'no');
+        error_log('[ACF sync] hash saved: ' . $content_hash);
 
         error_log('[ACF sync] starting at ' . current_time('mysql'));
         error_log('[ACF sync] files: ' . count($parent_json_files) . ' | mode: ' . ($is_child_theme ? 'child theme' : 'parent only'));
@@ -238,8 +239,14 @@ add_action('admin_notices', function () {
         $skipped  = 0;
         $warnings = 0;
 
+        $processed_keys = [];
+
         foreach ($groups as $group) {
             if (empty($group['local']) || $group['local'] !== 'json') continue;
+
+            // Evitar procesar el mismo grupo más de una vez por request
+            if (in_array($group['key'], $processed_keys)) continue;
+            $processed_keys[] = $group['key'];
 
             if ($is_child_theme && file_exists($child_json_path . '/' . $group['key'] . '.json')) {
                 error_log('[ACF sync] skipped (child override): ' . ($group['title'] ?? $group['key']));
@@ -255,9 +262,16 @@ add_action('admin_notices', function () {
             }
 
             // Buscar si el grupo ya existe en la DB para hacer update en lugar de insert
-            $existing = acf_get_field_group($group['key']);
-            if (!empty($existing['ID'])) {
-                $local['ID'] = $existing['ID'];
+            $existing_id = (int) get_posts([
+                'post_type'      => 'acf-field-group',
+                'name'           => $group['key'],
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'post_status'    => ['publish', 'acf-disabled', 'trash'],
+            ])[0] ?? 0;
+
+            if ($existing_id) {
+                $local['ID'] = $existing_id;
             }
 
             $local['fields'] = acf_get_local_fields($group['key']);
