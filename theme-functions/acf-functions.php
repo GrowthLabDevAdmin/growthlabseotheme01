@@ -303,17 +303,16 @@ add_action('admin_notices', function () {
         $memory_used = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
         $memory_peak = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
-        if ($synced > 0) {
-            delete_transient('acf_sync_lock');
-            wp_safe_redirect(add_query_arg('acf_synced', $synced, wp_get_referer() ?: admin_url('edit.php?post_type=acf-field-group')));
-            exit;
-        }
-
-        delete_transient('acf_sync_lock');
-
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
         error_log('[ACF sync] ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings);
         error_log('[ACF sync] memory: ' . $memory_used . 'MB used | ' . $memory_peak . 'MB peak');
+
+        delete_transient('acf_sync_lock');
+
+        if ($synced > 0 && function_exists('acf_reset_store')) {
+            acf_reset_store('fields');
+            acf_reset_store('field-groups');
+        }
     } catch (Throwable $e) {
         delete_transient('acf_sync_lock');
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
