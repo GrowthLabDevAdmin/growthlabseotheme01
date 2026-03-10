@@ -185,10 +185,8 @@ function my_acf_json_load_point($paths)
     return $paths;
 }
 
-add_action('init', function () {
-    add_filter('acf/settings/save_json', 'my_acf_json_save_point');
-    add_filter('acf/settings/load_json', 'my_acf_json_load_point');
-});
+add_filter('acf/settings/save_json', 'my_acf_json_save_point');
+add_filter('acf/settings/load_json', 'my_acf_json_load_point');
 
 
 /**
@@ -200,7 +198,6 @@ add_action('init', function () {
  * - El hash MD5 de los archivos JSON para detectar cambios
  */
 add_action('admin_notices', function () {
-    return;
     if (wp_doing_ajax() || wp_doing_cron()) return;
     if (!current_user_can('manage_options')) return;
     if (defined('ACF_DOING_SYNC')) return;
