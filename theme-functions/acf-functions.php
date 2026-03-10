@@ -254,6 +254,12 @@ add_action('admin_notices', function () {
                 continue;
             }
 
+            // Buscar si el grupo ya existe en la DB para hacer update en lugar de insert
+            $existing = acf_get_field_group($group['key']);
+            if (!empty($existing['ID'])) {
+                $local['ID'] = $existing['ID'];
+            }
+
             $local['fields'] = acf_get_local_fields($group['key']);
             acf_import_field_group($local);
 
