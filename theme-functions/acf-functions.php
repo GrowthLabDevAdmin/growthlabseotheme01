@@ -251,6 +251,8 @@ add_action('admin_notices', function () {
 
         $processed_keys = [];
 
+        add_filter('acf/settings/save_json', '__return_false', 99);
+
         foreach ($groups as $group) {
             if (empty($group['local']) || $group['local'] !== 'json') continue;
 
@@ -303,12 +305,14 @@ add_action('admin_notices', function () {
         $memory_used = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
         $memory_peak = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
+        remove_filter('acf/settings/save_json', '__return_false', 99);
         delete_transient('acf_sync_lock');
 
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
         error_log('[ACF sync] ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings);
         error_log('[ACF sync] memory: ' . $memory_used . 'MB used | ' . $memory_peak . 'MB peak');
     } catch (Throwable $e) {
+        remove_filter('acf/settings/save_json', '__return_false', 99); // agregar
         delete_transient('acf_sync_lock');
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
@@ -421,4 +425,4 @@ function acf_color_picker_palette_script()
 <?php
 }
 add_action('acf/input/admin_head', 'acf_color_picker_palette_script');
-add_action('acf/input/admin_footer', 'acf_color_picker_palette_script'); // Backup for late-loaded fields
+//add_action('acf/input/admin_footer', 'acf_color_picker_palette_script');
