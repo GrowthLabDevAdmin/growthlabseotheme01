@@ -303,6 +303,12 @@ add_action('admin_notices', function () {
         $memory_used = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
         $memory_peak = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
+        if ($synced > 0) {
+            delete_transient('acf_sync_lock');
+            wp_safe_redirect(add_query_arg('acf_synced', $synced, wp_get_referer() ?: admin_url('edit.php?post_type=acf-field-group')));
+            exit;
+        }
+
         delete_transient('acf_sync_lock');
 
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
@@ -313,6 +319,15 @@ add_action('admin_notices', function () {
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
 });
+
+add_action('admin_notices', function () {
+    if (empty($_GET['acf_synced'])) return;
+    $count = (int) $_GET['acf_synced'];
+    echo '<div class="notice notice-success is-dismissible"><p>';
+    echo '<strong>ACF Sync:</strong> ' . $count . ' field ' . ($count === 1 ? 'group' : 'groups') . ' synchronized successfully.';
+    echo '</p></div>';
+});
+
 // Allow HTML in ACF fields
 add_filter('acf/shortcode/allow_unsafe_html', function () {
     return true;
