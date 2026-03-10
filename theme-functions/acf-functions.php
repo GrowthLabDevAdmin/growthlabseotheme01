@@ -229,7 +229,6 @@ add_action('admin_notices', function () {
 
         define('ACF_DOING_SYNC', true);
         update_option('acf_json_parent_sync_hash', $content_hash, 'no');
-        error_log('[ACF sync] hash saved: ' . $content_hash);
 
         error_log('[ACF sync] starting at ' . current_time('mysql'));
         error_log('[ACF sync] files: ' . count($parent_json_files) . ' | mode: ' . ($is_child_theme ? 'child theme' : 'parent only'));
@@ -239,12 +238,24 @@ add_action('admin_notices', function () {
         $skipped  = 0;
         $warnings = 0;
 
+        // Obtener todos los IDs existentes en una sola query
+        $existing_groups = get_posts([
+            'post_type'      => 'acf-field-group',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'post_status'    => ['publish', 'acf-disabled', 'trash'],
+        ]);
+        $existing_ids_by_name = [];
+        foreach ($existing_groups as $existing_id) {
+            $post_name = get_post_field('post_name', $existing_id);
+            $existing_ids_by_name[$post_name] = $existing_id;
+        }
+
         $processed_keys = [];
 
         foreach ($groups as $group) {
             if (empty($group['local']) || $group['local'] !== 'json') continue;
 
-            // Evitar procesar el mismo grupo más de una vez por request
             if (in_array($group['key'], $processed_keys)) continue;
             $processed_keys[] = $group['key'];
 
@@ -261,15 +272,7 @@ add_action('admin_notices', function () {
                 continue;
             }
 
-            // Buscar si el grupo ya existe en la DB para hacer update en lugar de insert
-            $existing_id = (int) get_posts([
-                'post_type'      => 'acf-field-group',
-                'name'           => $group['key'],
-                'posts_per_page' => 1,
-                'fields'         => 'ids',
-                'post_status'    => ['publish', 'acf-disabled', 'trash'],
-            ])[0] ?? 0;
-
+            $existing_id = $existing_ids_by_name[$group['key']] ?? 0;
             if ($existing_id) {
                 $local['ID'] = $existing_id;
             }
@@ -277,7 +280,6 @@ add_action('admin_notices', function () {
             $local['fields'] = acf_get_local_fields($group['key']);
             acf_import_field_group($local);
 
-            // Aplicar estado active/inactive manualmente ya que ACF no lo hace durante el import
             if (isset($local['active']) && $local['active'] === false) {
                 wp_update_post([
                     'ID'          => $local['ID'] ?? acf_get_field_group($local['key'])['ID'] ?? 0,
