@@ -231,30 +231,27 @@ add_action('admin_notices', function () {
         error_log('[ACF sync] starting at ' . current_time('mysql'));
         error_log('[ACF sync] files: ' . count($parent_json_files) . ' | mode: ' . ($is_child_theme ? 'child theme' : 'parent only'));
 
-        $groups   = acf_get_field_groups();
-        $synced   = 0;
-        $skipped  = 0;
+        $groups  = acf_get_field_groups();
+        $synced  = 0;
+        $skipped = 0;
         $warnings = 0;
 
-        // Obtener todos los IDs existentes en una sola query
-        $existing_groups = get_posts([
-            'post_type'      => 'acf-field-group',
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'post_status'    => ['publish', 'acf-disabled', 'trash'],
-        ]);
-        $existing_ids_by_name = [];
-        foreach ($existing_groups as $existing_id) {
-            $post_name = get_post_field('post_name', $existing_id);
-            $existing_ids_by_name[$post_name] = $existing_id;
-        }
+        // Una sola query para obtener todos los IDs existentes
+        global $wpdb;
+        $rows = $wpdb->get_results(
+            "SELECT ID, post_name FROM {$wpdb->posts}
+             WHERE post_type = 'acf-field-group'
+             AND post_status IN ('publish', 'acf-disabled', 'trash')",
+            OBJECT_K
+        );
+        $existing_ids_by_name = array_map(fn($r) => (int) $r->ID, $rows);
 
         $processed_keys = [];
 
         foreach ($groups as $group) {
             if (empty($group['local']) || $group['local'] !== 'json') continue;
 
-            if (in_array($group['key'], $processed_keys)) continue;
+            if (in_array($group['key'], $processed_keys, true)) continue;
             $processed_keys[] = $group['key'];
 
             if ($is_child_theme && file_exists($child_json_path . '/' . $group['key'] . '.json')) {
@@ -263,31 +260,35 @@ add_action('admin_notices', function () {
                 continue;
             }
 
-            $local = acf_get_local_field_group($group['key']);
-            if (empty($local)) {
-                error_log('[ACF sync] WARNING — group not found: ' . $group['key']);
+            // Leer el JSON directamente para incluir subfields anidados
+            $json_file = $parent_json_path . '/' . $group['key'] . '.json';
+            if (!file_exists($json_file) || !is_readable($json_file)) {
+                error_log('[ACF sync] WARNING — JSON not found: ' . $group['key']);
                 $warnings++;
                 continue;
             }
 
-            $existing_id = $existing_ids_by_name[$group['key']] ?? 0;
-            if ($existing_id) {
-                $local['ID'] = $existing_id;
+            $json_data = json_decode(file_get_contents($json_file), true);
+            if (empty($json_data) || !is_array($json_data)) {
+                error_log('[ACF sync] WARNING — JSON invalid: ' . $group['key']);
+                $warnings++;
+                continue;
             }
 
-            $local['fields'] = acf_get_local_fields($group['key']);
-            error_log('[ACF sync] ' . $group['key'] . ' fields: ' . count($local['fields']));
-            foreach ($local['fields'] as $f) {
-                error_log('[ACF sync] -- ' . $f['key'] . ' | ' . $f['type'] . ' | parent: ' . ($f['parent'] ?? 'none'));
+            // Pasar el ID existente garantiza update en lugar de insert
+            $existing_id = $existing_ids_by_name[$group['key']] ?? 0;
+            if ($existing_id) {
+                $json_data['ID'] = $existing_id;
             }
-            continue; // detener antes del import
-            acf_import_field_group($local);
-            
-            if (isset($local['active']) && $local['active'] === false) {
-                wp_update_post([
-                    'ID'          => $local['ID'] ?? acf_get_field_group($local['key'])['ID'] ?? 0,
-                    'post_status' => 'acf-disabled',
-                ]);
+
+            acf_import_field_group($json_data);
+
+            // Aplicar active/inactive manualmente
+            if (isset($json_data['active']) && $json_data['active'] === false) {
+                $group_id = $existing_id ?: (acf_get_field_group($group['key'])['ID'] ?? 0);
+                if ($group_id) {
+                    wp_update_post(['ID' => $group_id, 'post_status' => 'acf-disabled']);
+                }
                 error_log('[ACF sync] disabled: ' . ($group['title'] ?? $group['key']));
             } else {
                 error_log('[ACF sync] imported: ' . ($group['title'] ?? $group['key']));
