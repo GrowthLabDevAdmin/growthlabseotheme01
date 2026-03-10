@@ -276,8 +276,13 @@ add_action('admin_notices', function () {
             }
 
             $local['fields'] = acf_get_local_fields($group['key']);
+            error_log('[ACF sync] ' . $group['key'] . ' fields: ' . count($local['fields']));
+            foreach ($local['fields'] as $f) {
+                error_log('[ACF sync] -- ' . $f['key'] . ' | ' . $f['type'] . ' | parent: ' . ($f['parent'] ?? 'none'));
+            }
+            continue; // detener antes del import
             acf_import_field_group($local);
-
+            
             if (isset($local['active']) && $local['active'] === false) {
                 wp_update_post([
                     'ID'          => $local['ID'] ?? acf_get_field_group($local['key'])['ID'] ?? 0,

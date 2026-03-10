@@ -22,7 +22,7 @@ if (get_field('toggle_block')):
             <?php if ($box_position === "within" && $block_style === "light"): ?>
 
                 <div class="cta-box__decoration">
-                    <?php if ($options["logo_symbol"]) {
+                    <?php if (isset($options["logo_symbol"]) && $options["logo_symbol"]) {
                         img_print_picture_tag(img: $options["logo_symbol"], max_size: "medium");
                     } else {
                         include get_stylesheet_directory() . '/assets/img/ampersand-symbol.svg';

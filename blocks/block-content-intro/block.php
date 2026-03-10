@@ -43,7 +43,7 @@ if (get_field('toggle_block')):
                             ?>
 
                                 <div class="content-intro__caption">
-                                    <?php if ($options["logo_symbol"]) {
+                                    <?php if (isset($options["logo_symbol"]) && $options["logo_symbol"]) {
                                         img_print_picture_tag(img: $options["logo_symbol"], max_size: "medium");
                                     } else {
                                         include get_stylesheet_directory() . '/assets/img/ampersand-symbol.svg';
@@ -76,7 +76,7 @@ if (get_field('toggle_block')):
                             ?>
 
                                 <div class="content-intro__caption">
-                                    <?php if ($options["logo_symbol"]) {
+                                    <?php if (isset($options["logo_symbol"]) && $options["logo_symbol"]) {
                                         img_print_picture_tag(img: $options["logo_symbol"], max_size: "medium");
                                     } else {
                                         include get_stylesheet_directory() . '/assets/img/ampersand-symbol.svg';
