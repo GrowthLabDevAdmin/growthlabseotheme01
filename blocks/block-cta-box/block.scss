@@ -42,25 +42,27 @@
     #{$parent}__wrapper {
       padding: 0;
       contain: layout style;
+      // CRÍTICO: Valores predeterminados aproximados
+      margin-top: -155px;
+      padding-bottom: 155px;
+      opacity: 0;
       transition:
+        opacity 0.3s ease,
         margin-top 0.15s ease,
         padding-bottom 0.15s ease;
-      // Hide until positioned by JS
-      opacity: 0;
     }
 
     // Show after JS positions it
     &.positioned #{$parent}__wrapper {
       opacity: 1;
-      transition:
-        opacity 0.2s ease,
-        margin-top 0.15s ease,
-        padding-bottom 0.15s ease;
     }
   }
 
+  // Valores predeterminados para elementos adyacentes
   * + &.float {
     ~ * {
+      padding-bottom: 228px; // 155 + 73
+      border-bottom: 8px solid rgb(var(--tertiary));
       transition:
         padding-bottom 0.2s ease,
         border-bottom 0.2s ease;
