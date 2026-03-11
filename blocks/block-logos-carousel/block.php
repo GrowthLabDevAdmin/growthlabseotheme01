@@ -38,7 +38,7 @@ if (get_field('toggle_block')):
 
                                             <?= img_generate_picture_tag(
                                                 img: $logo['logo'],
-                                                max_size: "featured-small",
+                                                max_size: count($logos) >= 5 ? "featured-small" : "medium",
                                                 classes: "logo__pic"
                                             ); ?>
 
