@@ -21,6 +21,10 @@
     text-align: center;
   }
 
+  &__content {
+    max-width: 96rem;
+  }
+
   &__separator {
     max-width: 70%;
     margin-bottom: var(--sp-xsm);
@@ -111,7 +115,7 @@
         color: rgb(var(--tertiary-dark));
       }
     }
-    
+
     strong {
       transition: 0.3s ease-in-out;
     }
