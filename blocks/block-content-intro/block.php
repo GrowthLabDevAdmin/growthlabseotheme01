@@ -4,6 +4,8 @@ if (!defined('ABSPATH')) {
 }
 
 if (get_field('toggle_block')):
+    $es = filterContentByLanguage() ? '_es' : '';
+    $options = get_field_options('options' . $es);
     foreach (get_fields() as $key => $value) $$key = $value;
 ?>
 
