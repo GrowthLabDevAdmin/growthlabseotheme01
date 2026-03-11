@@ -382,6 +382,10 @@ img.bg-image {
 
   &__inner {
     padding-block: var(--sp-xsm);
+
+    & > p:last-child {
+      margin-bottom: 0;
+    }
   }
 }
 
