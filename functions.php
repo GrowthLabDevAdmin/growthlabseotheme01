@@ -559,6 +559,16 @@ add_action('customize_register', function ($wp_customize) {
     if ($sidebar_blog) {
         $sidebar_blog->active_callback = '__return_true';
     }
+
+    $sidebar_default_es = $wp_customize->get_section('sidebar-widgets-sidebar-default-es');
+    if ($sidebar_default_es) {
+        $sidebar_default_es->active_callback = '__return_true';
+    }
+
+    $sidebar_blog_es = $wp_customize->get_section('sidebar-widgets-sidebar-blog-es');
+    if ($sidebar_blog_es) {
+        $sidebar_blog_es->active_callback = '__return_true';
+    }
 }, 999);
 
 // Prevenir que el Customizer oculte secciones de widgets dinámicamente
@@ -579,7 +589,7 @@ add_action('customize_controls_print_footer_scripts', function () {
                 }
 
                 // Forzar secciones específicas
-                ['sidebar-widgets-sidebar-default', 'sidebar-widgets-sidebar-blog'].forEach(function(sectionId) {
+                ['sidebar-widgets-sidebar-default', 'sidebar-widgets-sidebar-blog', 'sidebar-widgets-sidebar-default-es', 'sidebar-widgets-sidebar-blog-es'].forEach(function(sectionId) {
                     var section = wp.customize.section(sectionId);
                     if (section) {
                         section.active.set(true);
