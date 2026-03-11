@@ -14,7 +14,9 @@
     z-index: 20;
 
     & + * {
-      transition: margin-top 0.2s ease, padding-top 0.2s ease;
+      transition:
+        margin-top 0.2s ease,
+        padding-top 0.2s ease;
 
       & > section:first-child {
         padding-top: 0;
@@ -40,7 +42,9 @@
     #{$parent}__wrapper {
       padding: 0;
       contain: layout style;
-      transition: margin-top 0.15s ease, padding-bottom 0.15s ease;
+      transition:
+        margin-top 0.15s ease,
+        padding-bottom 0.15s ease;
       // Hide until positioned by JS
       opacity: 0;
     }
@@ -48,14 +52,18 @@
     // Show after JS positions it
     &.positioned #{$parent}__wrapper {
       opacity: 1;
-      transition: opacity 0.2s ease, margin-top 0.15s ease,
+      transition:
+        opacity 0.2s ease,
+        margin-top 0.15s ease,
         padding-bottom 0.15s ease;
     }
   }
 
   * + &.float {
     ~ * {
-      transition: padding-bottom 0.2s ease, border-bottom 0.2s ease;
+      transition:
+        padding-bottom 0.2s ease,
+        border-bottom 0.2s ease;
     }
   }
 
@@ -82,6 +90,7 @@
     }
 
     #{$parent}__title {
+      margin-bottom: 0;
       @include m.title(rgb(var(--secondary)), 3.2rem, 3.333vw, 3.6rem);
     }
 
@@ -139,6 +148,7 @@
       }
 
       #{$parent}__title {
+        margin-bottom: 0;
         color: rgb(var(--primary));
       }
 
@@ -211,6 +221,7 @@
 
   &__title {
     min-width: 250px;
+    margin-bottom: 0;
     @include m.title(rgb(var(--secondary)), 4rem, 5.6vw, 7rem);
   }
 
