@@ -1,12 +1,31 @@
 const ctaBoxes = document.querySelectorAll(".cta-box.float");
 const contactFormFooterWrapper = document.querySelector(
-  ".contact-form-footer__wrapper"
+  ".contact-form-footer__wrapper",
 );
 
-let isPositioned = false; // Prevent multiple executions
+let isPositioned = false;
+
+// CRÍTICO: Establecer valores aproximados INMEDIATAMENTE (sincrónicamente)
+function setApproximateValues() {
+  ctaBoxes.forEach((element) => {
+    const box = element.querySelector(".cta-box__box");
+    if (!box) return;
+
+    // Medición inicial rápida
+    const boxHeight = box.offsetHeight || 0;
+    if (boxHeight === 0) return;
+
+    const approximateTop = Math.round(boxHeight * 0.55);
+
+    // Establecer CSS variable INMEDIATAMENTE
+    element.style.setProperty("--cta-approximate-top", `${approximateTop}px`);
+
+    // Aplicar clase para activar los estilos CSS
+    element.classList.add("cta-measured");
+  });
+}
 
 function setBoxPosition() {
-  // Batch all measurements (single reflow)
   const measurements = Array.from(ctaBoxes).map((element) => {
     const box = element.querySelector(".cta-box__box");
     return {
@@ -19,14 +38,16 @@ function setBoxPosition() {
     };
   });
 
-  // Batch all style updates (single repaint)
   requestAnimationFrame(() => {
     measurements.forEach(
       ({ element, box, boxHeight, firstChild, prevSibling, nextSibling }) => {
         if (!box || boxHeight === 0) return;
 
         const topPosition = boxHeight * 0.55;
-        const bottomPosition = boxHeight * 0.50; // Adjusted to 50% for better coverage
+        const bottomPosition = boxHeight * 0.5;
+
+        // Actualizar CSS variable con valor preciso
+        element.style.setProperty("--cta-top-position", `${topPosition}px`);
 
         if (firstChild) {
           firstChild.style.cssText += `margin-top:${-topPosition}px;padding-bottom:${topPosition}px;`;
@@ -40,9 +61,9 @@ function setBoxPosition() {
 
         if (nextSibling) {
           const isFooter = nextSibling.classList.contains("site-footer");
-          const paddingTop = `${bottomPosition + 63}px`; // +3px for the border
+          const paddingTop = `${bottomPosition + 63}px`;
 
-          nextSibling.style.marginTop = `${-boxHeight - 33}px`; // Adjusted to compensate for 3px border
+          nextSibling.style.marginTop = `${-boxHeight - 33}px`;
 
           if (isFooter && contactFormFooterWrapper) {
             contactFormFooterWrapper.style.paddingTop = paddingTop;
@@ -51,32 +72,36 @@ function setBoxPosition() {
           }
         }
 
-        // Mark as positioned
         element.classList.add("positioned");
-      }
+      },
     );
 
     isPositioned = true;
   });
 }
 
-// CRITICAL: Only run ONCE on initial load
+// PASO 1: Establecer valores aproximados INMEDIATAMENTE (sincrónicamente)
+setApproximateValues();
+
+// PASO 2: Refinar con valores precisos
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", setBoxPosition, { once: true });
 } else {
-  // If DOM already loaded, wait for next frame to ensure styles are applied
   requestAnimationFrame(setBoxPosition);
 }
 
-// Debounced resize handler - only if already positioned
+// PASO 3: Recalcular en resize
 let resizeTimer;
 window.addEventListener(
   "resize",
   () => {
-    if (!isPositioned) return; // Don't run if initial positioning hasn't happened
-
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(setBoxPosition, 150);
+    resizeTimer = setTimeout(() => {
+      if (isPositioned) {
+        setApproximateValues(); // Actualizar aproximación
+        setBoxPosition(); // Luego refinar
+      }
+    }, 150);
   },
-  { passive: true }
+  { passive: true },
 );
