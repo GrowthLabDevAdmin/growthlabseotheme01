@@ -154,10 +154,6 @@
 
     @media (min-width: v.$tablet) {
       text-align: left;
-
-      & > *:nth-child(2) {
-        margin-top: var(--sp-xsm);
-      }
     }
 
     blockquote {
