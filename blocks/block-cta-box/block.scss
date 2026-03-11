@@ -153,7 +153,7 @@
       }
 
       #{$parent}__content p {
-        color: rgb(var(--text-color)) x;
+        color: rgb(var(--text-color));
       }
 
       #{$parent}__separator {
@@ -184,6 +184,7 @@
   }
 
   &__wrapper {
+    max-width: 1100px;
     height: fit-content;
     padding: 20rem 0;
     @include m.flex-center;
