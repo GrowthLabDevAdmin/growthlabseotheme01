@@ -17,27 +17,35 @@ function growthlabtheme01_blocks_category($categories, $post)
 }
 add_filter('block_categories_all', 'growthlabtheme01_blocks_category', 10, 2);
 
-// Register Block Types
+// Register Block Types with caching to prevent memory bloat during cache flushes
 function register_acf_blocks()
 {
-    $block_files = [];
+    // Use transient to avoid repeated filesystem operations during W3TC cache flushes
+    $block_files = get_transient('growthlabtheme01_block_files_cache');
 
-    // 1. Parent blocks
-    foreach (glob(get_template_directory() . '/blocks/*/block.json') ?: [] as $block) {
-        $data = json_decode(file_get_contents($block), true);
+    if ($block_files === false) {
+        $block_files = [];
 
-        if (!empty($data['name'])) {
-            $block_files[$data['name']] = dirname($block);
+        // 1. Parent blocks
+        foreach (glob(get_template_directory() . '/blocks/*/block.json') ?: [] as $block) {
+            $data = json_decode(file_get_contents($block), true);
+
+            if (!empty($data['name'])) {
+                $block_files[$data['name']] = dirname($block);
+            }
         }
-    }
 
-    // 2. Child blocks (override)
-    foreach (glob(get_stylesheet_directory() . '/blocks/*/block.json') ?: [] as $block) {
-        $data = json_decode(file_get_contents($block), true);
+        // 2. Child blocks (override)
+        foreach (glob(get_stylesheet_directory() . '/blocks/*/block.json') ?: [] as $block) {
+            $data = json_decode(file_get_contents($block), true);
 
-        if (!empty($data['name'])) {
-            $block_files[$data['name']] = dirname($block);
+            if (!empty($data['name'])) {
+                $block_files[$data['name']] = dirname($block);
+            }
         }
+
+        // Cache for 24 hours, purged on theme update
+        set_transient('growthlabtheme01_block_files_cache', $block_files, 24 * HOUR_IN_SECONDS);
     }
 
     // 3. Register all found blocks
@@ -45,12 +53,18 @@ function register_acf_blocks()
         register_block_type($block_dir);
     }
 }
+
+// Clear block cache on theme switch/update
+add_action('switch_theme', function () {
+    delete_transient('growthlabtheme01_block_files_cache');
+});
+
 add_action('init', 'register_acf_blocks', 5);
 
 
 /**
  * Load block assets only when block is present on the page
- * and move block scripts to footer
+ * Optimized to prevent memory bloat during cache operations
  */
 
 // Prevent unused block assets from loading
@@ -58,19 +72,28 @@ add_filter('should_load_separate_core_block_assets', '__return_true');
 
 /**
  * Dequeue block assets that aren't used on the current page
+ * SIMPLIFIED: Only run for singular pages with blocks to avoid parse_blocks on every pageload
  */
 add_action('wp_enqueue_scripts', function () {
     global $post;
 
-    // Only run on singular pages with content
+    // Skip early if not a singular page or no content
     if (!is_singular() || empty($post->post_content)) {
         return;
     }
 
-    // Get all registered blocks
-    $registered_blocks = WP_Block_Type_Registry::get_instance()->get_all_registered();
+    // Skip if no blocks detected in content (string-based check, much faster)
+    if (strpos($post->post_content, '<!-- wp:') === false) {
+        return;
+    }
 
-    // Parse blocks in the content
+    // Get all registered blocks ONCE
+    $registered_blocks = WP_Block_Type_Registry::get_instance()->get_all_registered();
+    if (empty($registered_blocks)) {
+        return;
+    }
+
+    // Parse blocks ONLY if we detected block comments above
     $blocks = parse_blocks($post->post_content);
     $blocks_in_use = array();
 
@@ -87,9 +110,15 @@ add_action('wp_enqueue_scripts', function () {
     };
 
     $find_blocks($blocks);
+
+    if (empty($blocks_in_use)) {
+        return;
+    }
+
     $blocks_in_use = array_unique($blocks_in_use);
 
-    // Dequeue unused block assets
+    // Dequeue unused block assets - LIMIT iteration to reduce memory
+    $dequeued = 0;
     foreach ($registered_blocks as $block_name => $block_type) {
         // Skip if block is in use
         if (in_array($block_name, $blocks_in_use)) {
@@ -117,18 +146,28 @@ add_action('wp_enqueue_scripts', function () {
         if (!empty($block_type->view_script)) {
             wp_dequeue_script($block_type->view_script);
         }
+
+        // Stop after a reasonable number to prevent excessive iterations
+        $dequeued++;
+        if ($dequeued > 100) {
+            break;
+        }
     }
 }, 100);
 
 
 /**
  * Move block scripts to footer (only for blocks actually in use)
+ * OPTIMIZED: Only process registered block scripts, not all scripts
  */
 add_action('wp_enqueue_scripts', function () {
     global $wp_scripts;
 
-    if (empty($wp_scripts->registered)) return;
+    if (empty($wp_scripts->registered)) {
+        return;
+    }
 
+    $processed = 0;
     foreach ($wp_scripts->registered as $handle => $script) {
         if (
             !empty($script->src)
@@ -138,6 +177,12 @@ add_action('wp_enqueue_scripts', function () {
             $wp_scripts->registered[$handle]->extra['group'] = 1;
             // Agregar defer
             $wp_scripts->registered[$handle]->extra['strategy'] = 'defer';
+
+            $processed++;
+            // Limit iterations to prevent excessive processing
+            if ($processed > 50) {
+                break;
+            }
         }
     }
 }, 999);
@@ -196,13 +241,19 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
  * - Overrides del tema hijo (si existe)
  * - Cambios realizados en el repositorio
  * - El hash MD5 de los archivos JSON para detectar cambios
+ * 
+ * SAFEGUARDS:
+ * - Cooldown de 5 minutos entre syncs (evita loops)
+ * - Timeout de 30 segundos de ejecución (evita memory bloat)
+ * - Mutex DB para evitar requests paralelos
  */
-/* add_action('admin_notices', function () {
+add_action('admin_notices', function () {
     if (wp_doing_ajax() || wp_doing_cron()) return;
     if (!current_user_can('manage_options')) return;
     if (defined('ACF_DOING_SYNC')) return;
     if (!function_exists('acf_get_field_groups')) return;
 
+    global $wpdb;
     $memory_start = memory_get_usage();
 
     $parent_json_path = get_template_directory() . '/acf-json';
@@ -215,23 +266,58 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
     );
     if (empty($parent_json_files)) return;
 
+    // ⏰ SAFEGUARD 1: Cooldown - max 1 sync every 5 minutes
+    $last_sync = (int) $wpdb->get_var(
+        "SELECT option_value FROM {$wpdb->options}
+         WHERE option_name = 'acf_sync_last_run'
+         LIMIT 1"
+    );
+    if ($last_sync && (time() - $last_sync) < 300) {
+        error_log('[ACF sync] skipped — cooldown active (last run ' . (time() - $last_sync) . 's ago)');
+        return;
+    }
+
     try {
         $content_hash = md5(implode('', array_map('md5_file', $parent_json_files)));
-        wp_cache_delete('acf_json_parent_sync_hash', 'options');
-        if (get_option('acf_json_parent_sync_hash', '') === $content_hash) return;
+        
+        // Query directly to BD instead of relying on object cache
+        $saved_hash = $wpdb->get_var(
+            "SELECT option_value FROM {$wpdb->options}
+             WHERE option_name = 'acf_json_parent_sync_hash'
+             LIMIT 1"
+        );
+        if ($saved_hash === $content_hash) return;
 
-        if (get_transient('acf_sync_lock')) {
+        // Check mutex using DB timestamp
+        $lock_time = (int) $wpdb->get_var(
+            "SELECT option_value FROM {$wpdb->options}
+             WHERE option_name = 'acf_sync_lock_time'
+             LIMIT 1"
+        );
+        if ($lock_time && (time() - $lock_time) < 60) {
             error_log('[ACF sync] skipped — mutex active, another sync is running');
             return;
         }
-        set_transient('acf_sync_lock', true, 30);
+
+        // Set mutex lock timestamp
+        $wpdb->query(
+            $wpdb->prepare(
+                "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
+                 VALUES ('acf_sync_lock_time', %d, 'no')
+                 ON DUPLICATE KEY UPDATE option_value = VALUES(option_value)",
+                time()
+            )
+        );
 
         define('ACF_DOING_SYNC', true);
-        wp_cache_delete('acf_json_parent_sync_hash', 'options');
         update_option('acf_json_parent_sync_hash', $content_hash, 'no');
 
         error_log('[ACF sync] starting at ' . current_time('mysql'));
         error_log('[ACF sync] files: ' . count($parent_json_files) . ' | mode: ' . ($is_child_theme ? 'child theme' : 'parent only'));
+
+        // ⏱️ SAFEGUARD 2: Max execution time - 30 seconds
+        $max_execution_time = 30;
+        $execution_start = microtime(true);
 
         $groups  = acf_get_field_groups();
         $synced  = 0;
@@ -239,12 +325,11 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
         $warnings = 0;
 
         // Una sola query para obtener todos los IDs existentes
-        global $wpdb;
         $rows = $wpdb->get_results(
             "SELECT MIN(ID) as ID, post_name FROM {$wpdb->posts}
-     WHERE post_type = 'acf-field-group'
-     AND post_status IN ('publish', 'acf-disabled', 'trash')
-     GROUP BY post_name"
+             WHERE post_type = 'acf-field-group'
+             AND post_status IN ('publish', 'acf-disabled', 'trash')
+             GROUP BY post_name"
         );
         $existing_ids_by_name = [];
         foreach ($rows as $r) {
@@ -256,6 +341,12 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
         add_filter('acf/settings/save_json', '__return_false', 99);
 
         foreach ($groups as $group) {
+            // Check execution time limit
+            if ((microtime(true) - $execution_start) > $max_execution_time) {
+                error_log('[ACF sync] aborted — execution time limit reached (' . $max_execution_time . 's)');
+                break;
+            }
+
             if (empty($group['local']) || $group['local'] !== 'json') continue;
 
             if (in_array($group['key'], $processed_keys, true)) continue;
@@ -306,19 +397,43 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
 
         $memory_used = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
         $memory_peak = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
+        $execution_time = round(microtime(true) - $execution_start, 2);
 
         remove_filter('acf/settings/save_json', '__return_false', 99);
-        delete_transient('acf_sync_lock');
+
+        // Clear mutex lock
+        $wpdb->query(
+            "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
+             VALUES ('acf_sync_lock_time', '0', 'no')
+             ON DUPLICATE KEY UPDATE option_value = '0'"
+        );
+
+        // Record last sync timestamp (cooldown guard)
+        $wpdb->query(
+            $wpdb->prepare(
+                "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
+                 VALUES ('acf_sync_last_run', %d, 'no')
+                 ON DUPLICATE KEY UPDATE option_value = VALUES(option_value)",
+                time()
+            )
+        );
 
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
         error_log('[ACF sync] ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings);
-        error_log('[ACF sync] memory: ' . $memory_used . 'MB used | ' . $memory_peak . 'MB peak');
+        error_log('[ACF sync] memory: ' . $memory_used . 'MB used | ' . $memory_peak . 'MB peak | execution: ' . $execution_time . 's');
     } catch (Throwable $e) {
-        remove_filter('acf/settings/save_json', '__return_false', 99); // agregar
-        delete_transient('acf_sync_lock');
+        remove_filter('acf/settings/save_json', '__return_false', 99);
+        
+        // Clear mutex lock on error
+        $wpdb->query(
+            "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
+             VALUES ('acf_sync_lock_time', '0', 'no')
+             ON DUPLICATE KEY UPDATE option_value = '0'"
+        );
+        
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
-}); */
+});
 
 // Allow HTML in ACF fields
 add_filter('acf/shortcode/allow_unsafe_html', function () {
