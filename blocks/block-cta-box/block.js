@@ -3,104 +3,115 @@ const contactFormFooterWrapper = document.querySelector(
   ".contact-form-footer__wrapper",
 );
 
-let isPositioned = false;
+const positionedBoxes = new WeakSet();
 
-// CRÍTICO: Establecer valores aproximados INMEDIATAMENTE (sincrónicamente)
-function setApproximateValues() {
-  ctaBoxes.forEach((element) => {
-    const box = element.querySelector(".cta-box__box");
-    if (!box) return;
+// Función para posicionar UN CTA box específico
+function positionCTABox(element) {
+  if (positionedBoxes.has(element)) return; // Ya posicionado
 
-    // Medición inicial rápida
-    const boxHeight = box.offsetHeight || 0;
-    if (boxHeight === 0) return;
+  const box = element.querySelector(".cta-box__box");
+  if (!box) return;
 
-    const approximateTop = Math.round(boxHeight * 0.55);
+  const boxHeight = box.offsetHeight || 0;
+  if (boxHeight === 0) return;
 
-    // Establecer CSS variable INMEDIATAMENTE
-    element.style.setProperty("--cta-approximate-top", `${approximateTop}px`);
+  const topPosition = boxHeight * 0.55;
+  const bottomPosition = boxHeight * 0.5;
 
-    // Aplicar clase para activar los estilos CSS
-    element.classList.add("cta-measured");
-  });
-}
-
-function setBoxPosition() {
-  const measurements = Array.from(ctaBoxes).map((element) => {
-    const box = element.querySelector(".cta-box__box");
-    return {
-      element,
-      box,
-      boxHeight: box?.offsetHeight || 0,
-      firstChild: element.firstElementChild,
-      prevSibling: element.previousElementSibling,
-      nextSibling: element.nextElementSibling,
-    };
-  });
+  const firstChild = element.firstElementChild;
+  const prevSibling = element.previousElementSibling;
+  const nextSibling = element.nextElementSibling;
 
   requestAnimationFrame(() => {
-    measurements.forEach(
-      ({ element, box, boxHeight, firstChild, prevSibling, nextSibling }) => {
-        if (!box || boxHeight === 0) return;
+    // Establecer CSS variable
+    element.style.setProperty("--cta-approximate-top", `${topPosition}px`);
+    element.classList.add("cta-measured");
 
-        const topPosition = boxHeight * 0.55;
-        const bottomPosition = boxHeight * 0.5;
+    if (firstChild) {
+      firstChild.style.cssText += `margin-top:${-topPosition}px;padding-bottom:${topPosition}px;`;
+    }
 
-        // Actualizar CSS variable con valor preciso
-        element.style.setProperty("--cta-top-position", `${topPosition}px`);
+    if (prevSibling) {
+      prevSibling.style.cssText += `padding-bottom:${
+        topPosition + 73
+      }px;border-bottom:8px solid rgb(var(--tertiary));`;
+    }
 
-        if (firstChild) {
-          firstChild.style.cssText += `margin-top:${-topPosition}px;padding-bottom:${topPosition}px;`;
-        }
+    if (nextSibling) {
+      const isFooter = nextSibling.classList.contains("site-footer");
+      const paddingTop = `${bottomPosition + 63}px`;
 
-        if (prevSibling) {
-          prevSibling.style.cssText += `padding-bottom:${
-            topPosition + 73
-          }px;border-bottom:8px solid rgb(var(--tertiary));`;
-        }
+      nextSibling.style.marginTop = `${-boxHeight - 33}px`;
 
-        if (nextSibling) {
-          const isFooter = nextSibling.classList.contains("site-footer");
-          const paddingTop = `${bottomPosition + 63}px`;
+      if (isFooter && contactFormFooterWrapper) {
+        contactFormFooterWrapper.style.paddingTop = paddingTop;
+      } else {
+        nextSibling.style.paddingTop = paddingTop;
+      }
+    }
 
-          nextSibling.style.marginTop = `${-boxHeight - 33}px`;
-
-          if (isFooter && contactFormFooterWrapper) {
-            contactFormFooterWrapper.style.paddingTop = paddingTop;
-          } else {
-            nextSibling.style.paddingTop = paddingTop;
-          }
-        }
-
-        element.classList.add("positioned");
-      },
-    );
-
-    isPositioned = true;
+    element.classList.add("positioned");
+    positionedBoxes.add(element);
   });
 }
 
-// PASO 1: Establecer valores aproximados INMEDIATAMENTE (sincrónicamente)
-setApproximateValues();
+// Intersection Observer para posicionar cuando sea necesario
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        positionCTABox(entry.target);
+        observer.unobserve(entry.target); // Ya no necesitamos observar más
+      }
+    });
+  },
+  {
+    rootMargin: "300px", // Posicionar 300px antes de que sea visible
+    threshold: 0,
+  },
+);
 
-// PASO 2: Refinar con valores precisos
+// Observar todos los CTA boxes
+ctaBoxes.forEach((ctaBox) => observer.observe(ctaBox));
+
+// Posicionar los que ya están en viewport
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", setBoxPosition, { once: true });
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      ctaBoxes.forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 300) {
+          positionCTABox(element);
+        }
+      });
+    },
+    { once: true },
+  );
 } else {
-  requestAnimationFrame(setBoxPosition);
+  ctaBoxes.forEach((element) => {
+    const rect = element.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 300) {
+      positionCTABox(element);
+    }
+  });
 }
 
-// PASO 3: Recalcular en resize
+// Resize handler
 let resizeTimer;
 window.addEventListener(
   "resize",
   () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      if (isPositioned) {
-        setApproximateValues(); // Actualizar aproximación
-        setBoxPosition(); // Luego refinar
-      }
+      // Re-posicionar todos los boxes visibles
+      positionedBoxes.clear();
+      ctaBoxes.forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 300) {
+          positionCTABox(element);
+        }
+      });
     }, 150);
   },
   { passive: true },
