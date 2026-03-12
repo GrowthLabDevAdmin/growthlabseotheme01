@@ -261,7 +261,11 @@ add_action('admin_notices', function () {
     $is_child_theme   = $child_json_path !== $parent_json_path;
 
     $parent_json_files = array_filter(
-        glob($parent_json_path . '/group_*.json') ?: [],
+        array_merge(
+            glob($parent_json_path . '/group_*.json') ?: [],
+            glob($parent_json_path . '/post_type_*.json') ?: [],
+            glob($parent_json_path . '/taxonomy_*.json') ?: []
+        ),
         fn($f) => is_readable($f)
     );
     if (empty($parent_json_files)) return;
@@ -279,8 +283,8 @@ add_action('admin_notices', function () {
 
     try {
         $content_hash = md5(implode('', array_map('md5_file', $parent_json_files)));
-        
-        // Query directly to BD instead of relying on object cache
+
+        // Query directly to DB instead of relying on object cache
         $saved_hash = $wpdb->get_var(
             "SELECT option_value FROM {$wpdb->options}
              WHERE option_name = 'acf_json_parent_sync_hash'
@@ -310,25 +314,89 @@ add_action('admin_notices', function () {
         );
 
         define('ACF_DOING_SYNC', true);
-        update_option('acf_json_parent_sync_hash', $content_hash, 'no');
+        $wpdb->query(
+            $wpdb->prepare(
+                "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
+                 VALUES ('acf_json_parent_sync_hash', %s, 'no')
+                 ON DUPLICATE KEY UPDATE option_value = VALUES(option_value)",
+                $content_hash
+            )
+        );
+
+        $total_files = count(glob($parent_json_path . '/group_*.json') ?: [])
+            + count(glob($parent_json_path . '/post_type_*.json') ?: [])
+            + count(glob($parent_json_path . '/taxonomy_*.json') ?: []);
 
         error_log('[ACF sync] starting at ' . current_time('mysql'));
-        error_log('[ACF sync] files: ' . count($parent_json_files) . ' | mode: ' . ($is_child_theme ? 'child theme' : 'parent only'));
+        error_log('[ACF sync] files: ' . $total_files . ' | mode: ' . ($is_child_theme ? 'child theme' : 'parent only'));
 
         // ⏱️ SAFEGUARD 2: Max execution time - 30 seconds
         $max_execution_time = 30;
-        $execution_start = microtime(true);
+        $execution_start    = microtime(true);
 
-        $groups  = acf_get_field_groups();
-        $synced  = 0;
-        $skipped = 0;
+        $synced   = 0;
+        $skipped  = 0;
         $warnings = 0;
 
-        // Una sola query para obtener todos los IDs existentes
+        add_filter('acf/settings/save_json', '__return_false', 99);
+
+        // ─── CPTs ────────────────────────────────────────────────────────────
+        foreach (glob($parent_json_path . '/post_type_*.json') ?: [] as $file) {
+            if ((microtime(true) - $execution_start) > $max_execution_time) {
+                error_log('[ACF sync] aborted — execution time limit reached (' . $max_execution_time . 's)');
+                break;
+            }
+
+            if (!is_readable($file)) {
+                error_log('[ACF sync] WARNING — CPT JSON not readable: ' . basename($file));
+                $warnings++;
+                continue;
+            }
+
+            $json_data = json_decode(file_get_contents($file), true);
+            if (empty($json_data) || !is_array($json_data)) {
+                error_log('[ACF sync] WARNING — CPT JSON invalid: ' . basename($file));
+                $warnings++;
+                continue;
+            }
+
+            acf_update_post_type($json_data);
+            error_log('[ACF sync] imported CPT: ' . ($json_data['label'] ?? basename($file)));
+            $synced++;
+        }
+
+        // ─── Taxonomías ───────────────────────────────────────────────────────
+        foreach (glob($parent_json_path . '/taxonomy_*.json') ?: [] as $file) {
+            if ((microtime(true) - $execution_start) > $max_execution_time) {
+                error_log('[ACF sync] aborted — execution time limit reached (' . $max_execution_time . 's)');
+                break;
+            }
+
+            if (!is_readable($file)) {
+                error_log('[ACF sync] WARNING — Taxonomy JSON not readable: ' . basename($file));
+                $warnings++;
+                continue;
+            }
+
+            $json_data = json_decode(file_get_contents($file), true);
+            if (empty($json_data) || !is_array($json_data)) {
+                error_log('[ACF sync] WARNING — Taxonomy JSON invalid: ' . basename($file));
+                $warnings++;
+                continue;
+            }
+
+            acf_update_taxonomy($json_data);
+            error_log('[ACF sync] imported taxonomy: ' . ($json_data['label'] ?? basename($file)));
+            $synced++;
+        }
+
+        // ─── Field Groups ─────────────────────────────────────────────────────
+        $groups = acf_get_field_groups();
+
         $rows = $wpdb->get_results(
             "SELECT MIN(ID) as ID, post_name FROM {$wpdb->posts}
              WHERE post_type = 'acf-field-group'
-             AND post_status IN ('publish', 'acf-disabled', 'trash')
+             AND post_status IN ('publish', 'acf-disabled', 'trash', 'draft')
              GROUP BY post_name"
         );
         $existing_ids_by_name = [];
@@ -338,17 +406,13 @@ add_action('admin_notices', function () {
 
         $processed_keys = [];
 
-        add_filter('acf/settings/save_json', '__return_false', 99);
-
         foreach ($groups as $group) {
-            // Check execution time limit
             if ((microtime(true) - $execution_start) > $max_execution_time) {
                 error_log('[ACF sync] aborted — execution time limit reached (' . $max_execution_time . 's)');
                 break;
             }
 
             if (empty($group['local']) || $group['local'] !== 'json') continue;
-
             if (in_array($group['key'], $processed_keys, true)) continue;
             $processed_keys[] = $group['key'];
 
@@ -358,7 +422,6 @@ add_action('admin_notices', function () {
                 continue;
             }
 
-            // Leer el JSON directamente para incluir subfields anidados
             $json_file = $parent_json_path . '/' . $group['key'] . '.json';
             if (!file_exists($json_file) || !is_readable($json_file)) {
                 error_log('[ACF sync] WARNING — JSON not found: ' . $group['key']);
@@ -373,7 +436,6 @@ add_action('admin_notices', function () {
                 continue;
             }
 
-            // Pasar el ID existente garantiza update en lugar de insert
             $existing_id = $existing_ids_by_name[$group['key']] ?? 0;
             if ($existing_id) {
                 $json_data['ID'] = $existing_id;
@@ -381,7 +443,6 @@ add_action('admin_notices', function () {
 
             acf_import_field_group($json_data);
 
-            // Aplicar active/inactive manualmente
             if (isset($json_data['active']) && $json_data['active'] === false) {
                 $group_id = $existing_id ?: (acf_get_field_group($group['key'])['ID'] ?? 0);
                 if ($group_id) {
@@ -395,20 +456,15 @@ add_action('admin_notices', function () {
             $synced++;
         }
 
-        $memory_used = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
-        $memory_peak = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
-        $execution_time = round(microtime(true) - $execution_start, 2);
-
+        // ─── Cleanup & logging ────────────────────────────────────────────────
         remove_filter('acf/settings/save_json', '__return_false', 99);
 
-        // Clear mutex lock
         $wpdb->query(
             "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
              VALUES ('acf_sync_lock_time', '0', 'no')
              ON DUPLICATE KEY UPDATE option_value = '0'"
         );
 
-        // Record last sync timestamp (cooldown guard)
         $wpdb->query(
             $wpdb->prepare(
                 "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
@@ -418,19 +474,22 @@ add_action('admin_notices', function () {
             )
         );
 
+        $memory_used    = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
+        $memory_peak    = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
+        $execution_time = round(microtime(true) - $execution_start, 2);
+
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
         error_log('[ACF sync] ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings);
         error_log('[ACF sync] memory: ' . $memory_used . 'MB used | ' . $memory_peak . 'MB peak | execution: ' . $execution_time . 's');
     } catch (Throwable $e) {
         remove_filter('acf/settings/save_json', '__return_false', 99);
-        
-        // Clear mutex lock on error
+
         $wpdb->query(
             "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
              VALUES ('acf_sync_lock_time', '0', 'no')
              ON DUPLICATE KEY UPDATE option_value = '0'"
         );
-        
+
         error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
 });
