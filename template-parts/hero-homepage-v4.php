@@ -61,7 +61,7 @@ if (!$bg_mobile) $bg_mobile = [];
             </div>
         </div>
 
-        <?php if ($side_portrait) img_print_picture_tag(img: $side_portrait, classes: "hero__side-portrait", is_priority: true, is_cover: true); ?>
+        <?php if ($side_portrait) img_print_picture_tag(img: $side_portrait, max_size: "large", classes: "hero__side-portrait", is_priority: true); ?>
 
     </div>
 </section>
