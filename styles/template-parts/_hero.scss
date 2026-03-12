@@ -126,7 +126,9 @@
     }
 
     @media (min-width: v.$ldpi) {
-      height: 86rem;
+      max-height: 65rem;
+      height: auto;
+      aspect-ratio: 3 / 4;
     }
 
     img {
@@ -143,6 +145,7 @@
   }
 
   &--homepage {
+    min-height: 65.5rem;
     padding-bottom: 0;
   }
 
