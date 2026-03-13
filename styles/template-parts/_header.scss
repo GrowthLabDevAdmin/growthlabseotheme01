@@ -19,6 +19,12 @@
 
     &.scrolling {
       background-color: rgb(var(--primary));
+
+      @media (min-width: v.$mdpi) {
+        .site-logo img {
+          max-height: 80px;
+        }
+      }
     }
   }
 
@@ -107,19 +113,22 @@
     width: 100%;
     height: 100%;
     position: relative;
-    @include m.flex-center;
+    //@include m.flex-center;
+    display: block;
     cursor: pointer;
 
     picture {
       width: 100%;
-      height: 100%;
-      display: flex;
+      height: auto;
+      display: block;
     }
 
     img {
       width: 100%;
       height: 100%;
+      max-height: 180px;
       object-fit: contain;
+      transition: 0.3s ease;
     }
 
     span {
