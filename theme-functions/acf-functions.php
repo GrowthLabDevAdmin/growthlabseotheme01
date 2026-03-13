@@ -173,9 +173,9 @@ add_action('wp_enqueue_scripts', function () {
             !empty($script->src)
             && str_contains($script->src, '/blocks/')
         ) {
-            // Mover al footer
+            // Move to footer
             $wp_scripts->registered[$handle]->extra['group'] = 1;
-            // Agregar defer
+            // Add defer
             $wp_scripts->registered[$handle]->extra['strategy'] = 'defer';
 
             $processed++;
@@ -188,7 +188,7 @@ add_action('wp_enqueue_scripts', function () {
 }, 999);
 
 /**
- * Prevent block styles from loading in <head> for blocks not in use
+ * Render block filter (placeholder for custom logic)
  */
 add_filter('render_block', function ($block_content, $block) {
     // You can add custom logic here if needed
@@ -237,24 +237,19 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
 /**
  * Synchronize ACF Fields after theme updates (CI/CD Integration)
  * 
- * Importa campos ACF del tema padre automáticamente respetando:
- * - Overrides del tema hijo (si existe)
- * - Cambios realizados en el repositorio
- * - El hash MD5 de los archivos JSON para detectar cambios
+ * Automatically imports ACF fields from parent theme respecting:
+ * - Child theme overrides (if exists)
+ * - Changes made in the repository
+ * - MD5 hash of JSON files to detect changes
  * 
  * SAFEGUARDS:
- * - Cooldown de 5 minutos entre syncs (evita loops)
- * - Timeout de 30 segundos de ejecución (evita memory bloat)
- * - Mutex DB para evitar requests paralelos
+ * - Hash-based change detection (prevents unnecessary syncs)
+ * - 30-second execution timeout (prevents memory bloat)
  */
-
 function growthlabtheme01_acf_sync_run()
 {
     if (!function_exists('acf_get_field_groups')) return;
     if (defined('ACF_DOING_SYNC')) return;
-
-    $req_id = substr(md5(uniqid('', true)), 0, 6);
-    error_log('[ACF sync] #' . $req_id . ' triggered by WP Pusher deploy');
 
     global $wpdb;
     $memory_start = memory_get_usage();
@@ -272,16 +267,10 @@ function growthlabtheme01_acf_sync_run()
         fn($f) => is_readable($f)
     );
 
-    if (empty($parent_json_files)) {
-        error_log('[ACF sync] #' . $req_id . ' aborted — no JSON files found');
-        return;
-    }
+    if (empty($parent_json_files)) return;
 
     try {
-        // Hash para detectar si realmente hubo cambios
-        $t_hash_start = microtime(true);
         $content_hash = md5(implode('', array_map('md5_file', $parent_json_files)));
-        error_log('[ACF sync] #' . $req_id . ' hash computed in ' . round(microtime(true) - $t_hash_start, 3) . 's — ' . count($parent_json_files) . ' files');
 
         $saved_hash = $wpdb->get_var(
             "SELECT option_value FROM {$wpdb->options}
@@ -289,12 +278,7 @@ function growthlabtheme01_acf_sync_run()
              LIMIT 1"
         );
 
-        if ($saved_hash === $content_hash) {
-            error_log('[ACF sync] #' . $req_id . ' skipped — hash unchanged');
-            return;
-        }
-
-        error_log('[ACF sync] #' . $req_id . ' hash changed — saved: ' . substr($saved_hash ?? 'null', 0, 8) . ' | new: ' . substr($content_hash, 0, 8));
+        if ($saved_hash === $content_hash) return;
 
         define('ACF_DOING_SYNC', true);
 
@@ -307,12 +291,6 @@ function growthlabtheme01_acf_sync_run()
             )
         );
 
-        $total_files = count(glob($parent_json_path . '/group_*.json') ?: [])
-            + count(glob($parent_json_path . '/post_type_*.json') ?: [])
-            + count(glob($parent_json_path . '/taxonomy_*.json') ?: []);
-
-        error_log('[ACF sync] #' . $req_id . ' starting | files: ' . $total_files . ' | mode: ' . ($is_child_theme ? 'child theme' : 'parent only') . ' | mem: ' . round(memory_get_usage() / 1024 / 1024, 2) . 'MB');
-
         $max_execution_time = 30;
         $execution_start    = microtime(true);
         $synced             = 0;
@@ -321,63 +299,46 @@ function growthlabtheme01_acf_sync_run()
 
         add_filter('acf/settings/save_json', '__return_false', 99);
 
-        // ─── CPTs ─────────────────────────────────────────────────────────────
+        // --- CPTs -------------------------------------------------------------
         foreach (glob($parent_json_path . '/post_type_*.json') ?: [] as $file) {
-            if ((microtime(true) - $execution_start) > $max_execution_time) {
-                error_log('[ACF sync] #' . $req_id . ' aborted — execution time limit reached');
-                break;
-            }
+            if ((microtime(true) - $execution_start) > $max_execution_time) break;
+
             if (!is_readable($file)) {
-                error_log('[ACF sync] #' . $req_id . ' WARNING — CPT not readable: ' . basename($file));
                 $warnings++;
                 continue;
             }
+
             $json_data = json_decode(file_get_contents($file), true);
             if (empty($json_data) || !is_array($json_data)) {
-                error_log('[ACF sync] #' . $req_id . ' WARNING — CPT JSON invalid: ' . basename($file));
                 $warnings++;
                 continue;
             }
-            $mem_before = round(memory_get_usage() / 1024 / 1024, 2);
+
             acf_update_post_type($json_data);
-            $mem_after = round(memory_get_usage() / 1024 / 1024, 2);
-            error_log('[ACF sync] #' . $req_id . ' CPT imported: ' . ($json_data['label'] ?? basename($file)) . ' | mem: ' . $mem_before . ' -> ' . $mem_after . 'MB');
             $synced++;
         }
 
-        // ─── Taxonomías ───────────────────────────────────────────────────────
+        // --- Taxonomies -------------------------------------------------------
         foreach (glob($parent_json_path . '/taxonomy_*.json') ?: [] as $file) {
-            if ((microtime(true) - $execution_start) > $max_execution_time) {
-                error_log('[ACF sync] #' . $req_id . ' aborted — execution time limit reached');
-                break;
-            }
+            if ((microtime(true) - $execution_start) > $max_execution_time) break;
+
             if (!is_readable($file)) {
-                error_log('[ACF sync] #' . $req_id . ' WARNING — taxonomy not readable: ' . basename($file));
                 $warnings++;
                 continue;
             }
+
             $json_data = json_decode(file_get_contents($file), true);
             if (empty($json_data) || !is_array($json_data)) {
-                error_log('[ACF sync] #' . $req_id . ' WARNING — taxonomy JSON invalid: ' . basename($file));
                 $warnings++;
                 continue;
             }
-            $mem_before = round(memory_get_usage() / 1024 / 1024, 2);
+
             acf_update_taxonomy($json_data);
-            $mem_after = round(memory_get_usage() / 1024 / 1024, 2);
-            error_log('[ACF sync] #' . $req_id . ' taxonomy imported: ' . ($json_data['label'] ?? basename($file)) . ' | mem: ' . $mem_before . ' -> ' . $mem_after . 'MB');
             $synced++;
         }
 
-        // ─── Field Groups ─────────────────────────────────────────────────────
-        $mem_before_groups = round(memory_get_usage() / 1024 / 1024, 2);
-        $t_groups_start    = microtime(true);
-        $groups            = acf_get_field_groups();
-        error_log(
-            '[ACF sync] #' . $req_id . ' acf_get_field_groups() returned ' . count($groups) . ' groups'
-                . ' | took: ' . round(microtime(true) - $t_groups_start, 3) . 's'
-                . ' | mem: ' . $mem_before_groups . ' -> ' . round(memory_get_usage() / 1024 / 1024, 2) . 'MB'
-        );
+        // --- Field Groups -----------------------------------------------------
+        $groups = acf_get_field_groups();
 
         $rows = $wpdb->get_results(
             "SELECT MIN(ID) as ID, post_name FROM {$wpdb->posts}
@@ -389,36 +350,29 @@ function growthlabtheme01_acf_sync_run()
         foreach ($rows as $r) {
             $existing_ids_by_name[$r->post_name] = (int) $r->ID;
         }
-        error_log('[ACF sync] #' . $req_id . ' existing DB groups: ' . count($existing_ids_by_name));
 
         $processed_keys = [];
 
         foreach ($groups as $group) {
-            if ((microtime(true) - $execution_start) > $max_execution_time) {
-                error_log('[ACF sync] #' . $req_id . ' aborted — execution time limit reached');
-                break;
-            }
+            if ((microtime(true) - $execution_start) > $max_execution_time) break;
 
             if (empty($group['local']) || $group['local'] !== 'json') continue;
             if (in_array($group['key'], $processed_keys, true)) continue;
             $processed_keys[] = $group['key'];
 
             if ($is_child_theme && file_exists($child_json_path . '/' . $group['key'] . '.json')) {
-                error_log('[ACF sync] #' . $req_id . ' skipped (child override): ' . ($group['title'] ?? $group['key']));
                 $skipped++;
                 continue;
             }
 
             $json_file = $parent_json_path . '/' . $group['key'] . '.json';
             if (!file_exists($json_file) || !is_readable($json_file)) {
-                error_log('[ACF sync] #' . $req_id . ' WARNING — JSON not found: ' . $group['key']);
                 $warnings++;
                 continue;
             }
 
             $json_data = json_decode(file_get_contents($json_file), true);
             if (empty($json_data) || !is_array($json_data)) {
-                error_log('[ACF sync] #' . $req_id . ' WARNING — JSON invalid: ' . $group['key']);
                 $warnings++;
                 continue;
             }
@@ -428,40 +382,31 @@ function growthlabtheme01_acf_sync_run()
                 $json_data['ID'] = $existing_id;
             }
 
-            $mem_before_import = round(memory_get_usage() / 1024 / 1024, 2);
-            $t_import_start    = microtime(true);
             acf_import_field_group($json_data);
-            error_log(
-                '[ACF sync] #' . $req_id . ' imported: ' . ($group['title'] ?? $group['key'])
-                    . ' | fields: ' . count($json_data['fields'] ?? [])
-                    . ' | took: ' . round(microtime(true) - $t_import_start, 3) . 's'
-                    . ' | mem: ' . $mem_before_import . ' -> ' . round(memory_get_usage() / 1024 / 1024, 2) . 'MB'
-            );
 
             if (isset($json_data['active']) && $json_data['active'] === false) {
                 $group_id = $existing_id ?: (acf_get_field_group($group['key'])['ID'] ?? 0);
                 if ($group_id) {
                     wp_update_post(['ID' => $group_id, 'post_status' => 'acf-disabled']);
                 }
-                error_log('[ACF sync] #' . $req_id . ' disabled: ' . ($group['title'] ?? $group['key']));
             }
 
             $synced++;
         }
 
-        // ─── Cleanup ──────────────────────────────────────────────────────────
+        // --- Cleanup ----------------------------------------------------------
         remove_filter('acf/settings/save_json', '__return_false', 99);
-
-        $memory_used    = round((memory_get_usage() - $memory_start) / 1024 / 1024, 2);
-        $memory_peak    = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
-        $execution_time = round(microtime(true) - $execution_start, 2);
 
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
-        error_log('[ACF sync] #' . $req_id . ' ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings);
-        error_log('[ACF sync] #' . $req_id . ' memory: ' . $memory_used . 'MB used | ' . $memory_peak . 'MB peak | execution: ' . $execution_time . 's');
+        error_log(
+            '[ACF sync] ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings
+                . ' | mem: ' . round((memory_get_usage() - $memory_start) / 1024 / 1024, 2) . 'MB'
+                . ' | peak: ' . round(memory_get_peak_usage(true) / 1024 / 1024, 2) . 'MB'
+                . ' | time: ' . round(microtime(true) - $execution_start, 2) . 's'
+        );
     } catch (Throwable $e) {
         remove_filter('acf/settings/save_json', '__return_false', 99);
-        error_log('[ACF sync] #' . $req_id . ' ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
+        error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
 }
 
