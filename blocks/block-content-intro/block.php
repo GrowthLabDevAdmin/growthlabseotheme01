@@ -40,7 +40,7 @@ if (get_field('toggle_block')):
                     ): ?>
                         <div class="content-intro__pic-wrapper content-intro__pic-wrapper--<?= $featured_image['position'] ?>">
                             <?php
-                            img_print_picture_tag(img: $featured_image['picture'], max_size: "large", classes: "content-intro__pic shadow-box");
+                            img_print_picture_tag(img: $featured_image['picture'], max_size: "large", min_size: "medium", classes: "content-intro__pic shadow-box");
                             if (isset($featured_image['picture_caption']) && $featured_image['picture_caption']):
                             ?>
 
@@ -73,7 +73,7 @@ if (get_field('toggle_block')):
                     ): ?>
                         <div class="content-intro__pic-wrapper content-intro__pic-wrapper--<?= $featured_image['position'] ?>">
                             <?php
-                            img_print_picture_tag(img: $featured_image['picture'], max_size: "large", classes: "content-intro__pic shadow-box");
+                            img_print_picture_tag(img: $featured_image['picture'], max_size: "large", min_size: "medium", classes: "content-intro__pic shadow-box");
                             if (isset($featured_image['picture_caption']) && $featured_image['picture_caption']):
                             ?>
 

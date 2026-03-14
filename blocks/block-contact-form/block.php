@@ -80,7 +80,7 @@ if (get_field('toggle_block')):
                         </div>
                     <?php endif; ?>
 
-                    <?php if (isset($side_picture) && $side_picture && !$show_only_contact_form) img_print_picture_tag(img: $side_picture,  classes: "contact-form__side-pic shadow-box"); ?>
+                    <?php if (isset($side_picture) && $side_picture && !$show_only_contact_form) img_print_picture_tag(img: $side_picture, max_size: "large", min_size: "medium", classes: "contact-form__side-pic shadow-box"); ?>
                 </div>
 
             </div>
