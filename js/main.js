@@ -83,6 +83,7 @@ function showMenus() {
       item.classList.remove("active");
     });
   } else {
+    console.log("Mobile view - adding listeners");
     // add listener on mobile (same reference, no wrapper)
     mobileBtn.addEventListener("click", handleMenuClick);
 
