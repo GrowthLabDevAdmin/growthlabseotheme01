@@ -73,6 +73,7 @@ function showMenus() {
   mobileBtn.removeEventListener("click", handleMenuClick);
 
   if (window.innerWidth > tablet) {
+    console.log("Desktop view - removing mobile listeners");
     mobileBtn.classList.remove("active");
     mainMenu.classList.remove("active");
 
