@@ -72,7 +72,7 @@ function showMenus() {
   // always remove listener using the same reference before adding
   mobileBtn.removeEventListener("click", handleMenuClick);
 
-  if (window.screen.width > tablet) {
+  if (window.innerWidth > tablet) {
     mobileBtn.classList.remove("active");
     mainMenu.classList.remove("active");
 
