@@ -19,9 +19,13 @@
 
   &__pic-wrapper {
     min-width: 28rem;
-    min-height: 41.5rem;
+    min-height: 25rem;
     flex: 1 0 52%;
     display: flex;
+
+    @media (min-width: v.$ldpi) {
+      min-height: 41.5rem;
+    }
 
     svg {
       width: 100%;
