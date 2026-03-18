@@ -23,6 +23,10 @@ label {
     font-weight: 700;
     color: rgb(var(--tertiary));
   }
+
+  a{
+    font-size: inherit;
+  }
 }
 
 input[type="text"],
