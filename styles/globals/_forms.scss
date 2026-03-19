@@ -24,7 +24,7 @@ label {
     color: rgb(var(--tertiary));
   }
 
-  a{
+  a {
     font-size: inherit;
   }
 }
@@ -166,6 +166,10 @@ input[type="submit"] {
     &_hidden {
       display: none;
     }
+  }
+
+  &--type-honeypot {
+    display: none;
   }
 
   &--type-name {
