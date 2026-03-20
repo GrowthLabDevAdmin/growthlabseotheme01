@@ -70,7 +70,7 @@ const observer = new IntersectionObserver(
 ctaBoxes.forEach((ctaBox) => observer.observe(ctaBox));
 
 function checkVisible() {
-  // FASE DE LECTURA — recolectar todos los rects antes de escribir
+  // FASE DE LECTURA — recolectar todos los rects antes de posicionar
   const visible = [];
   ctaBoxes.forEach((element) => {
     const rect = element.getBoundingClientRect();
@@ -89,7 +89,6 @@ if (document.readyState === "loading") {
   checkVisible();
 }
 
-// Resize handler
 let resizeTimer;
 window.addEventListener(
   "resize",
