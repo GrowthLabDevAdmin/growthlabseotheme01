@@ -3,60 +3,70 @@
 -------------------------------------------------------------- */
 
 // Custom Block Categories
-function growthlabtheme01_blocks_category($categories, $post)
-{
-    return array_merge(
-        $categories,
-        array(
+if (!function_exists('growthlabtheme01_blocks_category')) {
+    function growthlabtheme01_blocks_category($categories, $post)
+    {
+        $theme      = wp_get_theme();
+        $theme_name = $theme->get('Name');
+        $theme_slug = get_stylesheet();
+
+        return array_merge(
+            $categories,
             array(
-                'slug'  => 'growthlabtheme01-blocks',
-                'title' => __('Growthlab Theme 01 Blocks', 'growthlabtheme01-blocks'),
+                array(
+                    'slug'  => $theme_slug . '-blocks',
+                    'title' => __($theme_name . ' Blocks', $theme_slug),
+                )
             )
-        )
-    );
+        );
+    }
 }
 add_filter('block_categories_all', 'growthlabtheme01_blocks_category', 10, 2);
 
 // Register Block Types with caching to prevent memory bloat during cache flushes
-function register_acf_blocks()
-{
-    // Use transient to avoid repeated filesystem operations during W3TC cache flushes
-    $block_files = get_transient('growthlabtheme01_block_files_cache');
+if (!function_exists('register_acf_blocks')) {
+    function register_acf_blocks()
+    {
+        $cache_key   = 'theme_block_files_cache_' . get_stylesheet();
+        $block_files = get_transient($cache_key);
 
-    if ($block_files === false) {
-        $block_files = [];
+        if ($block_files === false) {
+            $block_files = [];
 
-        // 1. Parent blocks
-        foreach (glob(get_template_directory() . '/blocks/*/block.json') ?: [] as $block) {
-            $data = json_decode(file_get_contents($block), true);
-
-            if (!empty($data['name'])) {
-                $block_files[$data['name']] = dirname($block);
+            // 1. Parent blocks
+            foreach (glob(get_template_directory() . '/blocks/*/block.json') ?: [] as $block) {
+                $data = json_decode(file_get_contents($block), true);
+                if (!empty($data['name'])) {
+                    $block_files[$data['name']] = dirname($block);
+                }
             }
+
+            // 2. Child blocks (override)
+            foreach (glob(get_stylesheet_directory() . '/blocks/*/block.json') ?: [] as $block) {
+                $data = json_decode(file_get_contents($block), true);
+                if (!empty($data['name'])) {
+                    $block_files[$data['name']] = dirname($block);
+                }
+            }
+
+            // Cache for 24 hours, purged on theme update
+            set_transient($cache_key, $block_files, 24 * HOUR_IN_SECONDS);
         }
 
-        // 2. Child blocks (override)
-        foreach (glob(get_stylesheet_directory() . '/blocks/*/block.json') ?: [] as $block) {
-            $data = json_decode(file_get_contents($block), true);
+        // Store block folder map globally for later critical CSS extraction.
+        global $acf_block_dirs;
+        $acf_block_dirs = $block_files;
 
-            if (!empty($data['name'])) {
-                $block_files[$data['name']] = dirname($block);
-            }
+        // 3. Register all found blocks
+        foreach ($block_files as $block_dir) {
+            register_block_type($block_dir);
         }
-
-        // Cache for 24 hours, purged on theme update
-        set_transient('growthlabtheme01_block_files_cache', $block_files, 24 * HOUR_IN_SECONDS);
-    }
-
-    // 3. Register all found blocks
-    foreach ($block_files as $block_dir) {
-        register_block_type($block_dir);
     }
 }
 
 // Clear block cache on theme switch/update
 add_action('switch_theme', function () {
-    delete_transient('growthlabtheme01_block_files_cache');
+    delete_transient('theme_block_files_cache_' . get_stylesheet());
 });
 
 add_action('init', 'register_acf_blocks', 5);
@@ -67,37 +77,27 @@ add_action('init', 'register_acf_blocks', 5);
  * Optimized to prevent memory bloat during cache operations
  */
 
-// Prevent unused block assets from loading
+// Allow WordPress core block assets flow, so block scripts still enqueue correctly.
+// Block CSS is handled by manual inlining/dequeue logic below.
 add_filter('should_load_separate_core_block_assets', '__return_true');
 
 /**
  * Dequeue block assets that aren't used on the current page
  * SIMPLIFIED: Only run for singular pages with blocks to avoid parse_blocks on every pageload
+ * MODIFIED: Inline critical CSS for used blocks instead of enqueuing separate files
  */
 add_action('wp_enqueue_scripts', function () {
     global $post;
 
-    // Skip early if not a singular page or no content
-    if (!is_singular() || empty($post->post_content)) {
-        return;
-    }
+    if (!is_singular() || empty($post->post_content)) return;
+    if (strpos($post->post_content, '<!-- wp:') === false) return;
 
-    // Skip if no blocks detected in content (string-based check, much faster)
-    if (strpos($post->post_content, '<!-- wp:') === false) {
-        return;
-    }
-
-    // Get all registered blocks ONCE
     $registered_blocks = WP_Block_Type_Registry::get_instance()->get_all_registered();
-    if (empty($registered_blocks)) {
-        return;
-    }
+    if (empty($registered_blocks)) return;
 
-    // Parse blocks ONLY if we detected block comments above
-    $blocks = parse_blocks($post->post_content);
+    $blocks        = parse_blocks($post->post_content);
     $blocks_in_use = array();
 
-    // Recursively find all blocks in use (including nested blocks)
     $find_blocks = function ($blocks) use (&$find_blocks, &$blocks_in_use) {
         foreach ($blocks as $block) {
             if (!empty($block['blockName'])) {
@@ -111,49 +111,81 @@ add_action('wp_enqueue_scripts', function () {
 
     $find_blocks($blocks);
 
-    if (empty($blocks_in_use)) {
-        return;
-    }
+    if (empty($blocks_in_use)) return;
 
     $blocks_in_use = array_unique($blocks_in_use);
 
-    // Dequeue unused block assets - LIMIT iteration to reduce memory
-    $dequeued = 0;
-    foreach ($registered_blocks as $block_name => $block_type) {
-        // Skip if block is in use
-        if (in_array($block_name, $blocks_in_use)) {
-            continue;
-        }
+    // Store for later use in filters
+    global $blocks_in_use_css;
+    $blocks_in_use_css = $blocks_in_use;
 
-        // Dequeue editor and frontend styles
-        if (!empty($block_type->style)) {
-            wp_dequeue_style($block_type->style);
+    // Group blocks by type (e.g., 'posts-carousel' for 'acf/posts-carousel')
+    $blocks_by_type = array();
+    foreach ($blocks_in_use as $block_name) {
+        $type = str_replace('acf/', '', $block_name); // Extract type from 'acf/type-name'
+        if (!isset($blocks_by_type[$type])) {
+            $blocks_by_type[$type] = array();
         }
+        $blocks_by_type[$type][] = $block_name;
+    }
 
-        if (!empty($block_type->editor_style)) {
-            wp_dequeue_style($block_type->editor_style);
+    // Generate combined CSS per type
+    global $block_critical_css;
+    $block_critical_css = '';
+
+    foreach ($blocks_by_type as $type => $block_names) {
+        $type_css = '';
+        foreach ($block_names as $block_name) {
+            if (!isset($registered_blocks[$block_name])) continue;
+
+            $block_type = $registered_blocks[$block_name];
+            if (!empty($block_type->style)) {
+                // Dequeue the style and the related inline CSS if present.
+                wp_dequeue_style($block_type->style);
+                wp_deregister_style($block_type->style);
+
+                $inline_handle = $block_type->style . '-inline-css';
+                wp_dequeue_style($inline_handle);
+                wp_deregister_style($inline_handle);
+
+                // Read and combine CSS from block folder file (block JSON declares file:./block-min.css)
+                $css_file = null;
+                global $acf_block_dirs;
+                if (!empty($acf_block_dirs[$block_name])) {
+                    $css_file = trailingslashit($acf_block_dirs[$block_name]) . 'block-min.css';
+                }
+
+                if (empty($css_file) || !file_exists($css_file)) {
+                    // fallback: try from registered style source URL
+                    $style_src = wp_styles()->registered[$block_type->style]->src ?? '';
+                    $css_file  = str_replace(get_template_directory_uri(), get_template_directory(), $style_src);
+                }
+
+                if (!empty($css_file) && file_exists($css_file)) {
+                    $type_css .= file_get_contents($css_file) . "\n";
+                }
+            }
         }
-
-        // Dequeue editor and frontend scripts
-        if (!empty($block_type->script)) {
-            wp_dequeue_script($block_type->script);
-        }
-
-        if (!empty($block_type->editor_script)) {
-            wp_dequeue_script($block_type->editor_script);
-        }
-
-        if (!empty($block_type->view_script)) {
-            wp_dequeue_script($block_type->view_script);
-        }
-
-        // Stop after a reasonable number to prevent excessive iterations
-        $dequeued++;
-        if ($dequeued > 100) {
-            break;
+        // Wrap type CSS in a comment for debugging
+        if (!empty($type_css)) {
+            $block_critical_css .= "/* Block type: {$type} */\n" . $type_css;
         }
     }
-}, 100);
+
+    $dequeued = 0;
+    foreach ($registered_blocks as $block_name => $block_type) {
+        if (in_array($block_name, $blocks_in_use)) continue;
+
+        if (!empty($block_type->style))         wp_dequeue_style($block_type->style);
+        if (!empty($block_type->editor_style))  wp_dequeue_style($block_type->editor_style);
+        if (!empty($block_type->script))        wp_dequeue_script($block_type->script);
+        if (!empty($block_type->editor_script)) wp_dequeue_script($block_type->editor_script);
+        if (!empty($block_type->view_script))   wp_dequeue_script($block_type->view_script);
+
+        $dequeued++;
+        if ($dequeued > 100) break;
+    }
+}, 5);
 
 
 /**
@@ -484,41 +516,46 @@ function get_theme_color_palette_for_acf()
 }
 
 
-/**
- * Inject color palette into ACF color picker via JavaScript
- */
-function acf_color_picker_palette_script()
-{
-    $colors = get_theme_color_palette_for_acf();
-    $palette = array();
-
-    foreach ($colors as $color) {
-        $palette[] = $color['color'];
-    }
-
-    $palette_json = json_encode($palette);
+if (!function_exists('acf_color_picker_palette_script')) {
+    function acf_color_picker_palette_script()
+    {
+        $colors  = get_theme_color_palette_for_acf();
+        $palette = array_column($colors, 'color');
+        $palette_json = json_encode($palette);
 ?>
-    <script type="text/javascript">
-        (function($) {
-            if (typeof acf !== 'undefined') {
-                acf.addAction('ready', function() {
-                    // Override default ACF color picker settings
-                    acf.add_filter('color_picker_args', function(args, $field) {
-                        args.palettes = <?php echo $palette_json; ?>;
-                        return args;
+        <script type="text/javascript">
+            (function($) {
+                if (typeof acf !== 'undefined') {
+                    acf.addAction('ready', function() {
+                        acf.add_filter('color_picker_args', function(args, $field) {
+                            args.palettes = <?php echo $palette_json; ?>;
+                            return args;
+                        });
                     });
-                });
+                }
+            })(jQuery);
+        </script>
+        <style>
+            .acf-color-picker .wp-picker-container .iris-palette {
+                width: 100% !important;
+                max-width: 100% !important;
             }
-        })(jQuery);
-    </script>
-    <style>
-        /* Style for ACF color picker palette */
-        .acf-color-picker .wp-picker-container .iris-palette {
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-    </style>
+        </style>
 <?php
+    }
 }
 add_action('acf/input/admin_head', 'acf_color_picker_palette_script');
 //add_action('acf/input/admin_footer', 'acf_color_picker_palette_script');
+
+/**
+ * Inject critical CSS for used blocks in <head>
+ */
+add_action('wp_head', function () {
+    global $block_critical_css;
+
+    if (!empty($block_critical_css)) {
+        echo '<style id="block-critical-css">' . "\n";
+        echo $block_critical_css;
+        echo '</style>' . "\n";
+    }
+}, 1);
