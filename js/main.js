@@ -21,6 +21,49 @@ const ldpi = 1024;
 const mdpi = 1200;
 const hdpi = 1440;
 
+if (!window.loadSplide) {
+  window.loadSplide = (callback) => {
+    if (typeof Splide !== "undefined") return callback();
+    if (window.__splideLoading) {
+      window.__splideCallbacks = window.__splideCallbacks || [];
+      window.__splideCallbacks.push(callback);
+      return;
+    }
+    window.__splideLoading = true;
+    window.__splideCallbacks = [callback];
+    if (!window.splideData || !window.splideData.url) {
+      console.error("Splide data not available");
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = splideData.url;
+    script.onload = () => {
+      const checkSplide = (attempts = 0) => {
+        if (typeof Splide !== "undefined") {
+          window.__splideCallbacks.forEach((fn) => fn());
+          window.__splideCallbacks = [];
+          return;
+        }
+        if (attempts < 10) {
+          // Retry up to 10 times
+          setTimeout(() => checkSplide(attempts + 1), 100); // Check every 100ms
+        } else {
+          console.error("Splide failed to load after retries");
+        }
+      };
+      checkSplide();
+    };
+    script.onerror = () => {
+      console.error("Failed to load Splide script");
+    };
+    document.head.appendChild(script);
+  };
+}
+
+requestAnimationFrame(() => {
+  findConsecutiveGroups();
+});
+
 blocksInContent && extractBlocks();
 
 if (
@@ -150,21 +193,23 @@ function toggleAccordion(e) {
 
 //Splide Carousels
 function footerLocationsCarousel() {
-  new Splide(footerLocations, {
-    type: "loop",
-    perMove: 1,
-    perPage: 4,
-    arrows: true,
-    pagination: false,
-    breakpoints: {
-      [tablet]: {
-        perPage: 1,
+  loadSplide(() => {
+    new Splide(footerLocations, {
+      type: "loop",
+      perMove: 1,
+      perPage: 4,
+      arrows: true,
+      pagination: false,
+      breakpoints: {
+        [tablet]: {
+          perPage: 1,
+        },
+        [ldpi]: {
+          perPage: 2,
+        },
       },
-      [ldpi]: {
-        perPage: 2,
-      },
-    },
-  }).mount();
+    }).mount();
+  });
 }
 
 //Blocks
@@ -180,7 +225,7 @@ function extractBlocks() {
 }
 
 //Find Blocks with Bg-BiColor class
-(function findConsecutiveGroups() {
+function findConsecutiveGroups() {
   const blocks = document.querySelectorAll("body>section");
 
   if (!blocks) return;
@@ -200,7 +245,6 @@ function extractBlocks() {
     }
   }
 
-  // Don't forget the last group
   if (currentGroup.length > 1) {
     groups.push(currentGroup);
   }
@@ -212,11 +256,64 @@ function extractBlocks() {
 
     firstEl.parentNode.insertBefore(wrapper, firstEl);
 
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          wrapper.appendChild(entry.target);
+          observer.unobserve(entry.target);
+
+          // Una vez movido, si el wrapper tiene ya el resto de elementos, podemos activar la carga diferencial.
+          if (wrapper.children.length === group.length) {
+            lazyLoadBgBicolor();
+          }
+        });
+      },
+      { rootMargin: "100px" },
+    );
+
     group.forEach((el) => {
-      wrapper.appendChild(el);
+      observer.observe(el);
     });
   });
-})();
+
+  // Si no hay grupos o no se completa el proceso de observación, ejecuta fallback
+  if (groups.length === 0) {
+    lazyLoadBgBicolor();
+  }
+}
+
+// Lazy Load Background Images for .bg-bicolor
+function lazyLoadBgBicolor() {
+  "use strict";
+
+  const bgBicolorElements = Array.from(
+    document.querySelectorAll(".bg-bicolor"),
+  ).filter((el) => !el.parentElement?.closest(".bg-bicolor"));
+
+  if (!bgBicolorElements.length) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("bg-bicolor--loaded");
+        observer.unobserve(entry.target);
+      });
+    },
+    { rootMargin: "100px" },
+  );
+
+  const init = () => bgBicolorElements.forEach((el) => observer.observe(el));
+
+  // Si load ya disparó (script defer), init directo
+  if (document.readyState === "complete") {
+    init();
+  } else {
+    window.addEventListener("load", init, { once: true });
+  }
+}
 
 //Delay Google Maps Rendering
 (function googleMapsLazyLoading() {
@@ -375,3 +472,148 @@ window.addEventListener("load", () => {
     }
   });
 });
+
+// Lazy Load Images
+(function lazyLoadImages() {
+  "use strict";
+
+  const lazyImages = document.querySelectorAll('.lazy-image');
+
+  if (!lazyImages.length) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        const img = entry.target;
+        const src = img.dataset.src;
+        const picture = img.closest('picture');
+
+        if (src) {
+          img.src = src;
+          img.removeAttribute('data-src');
+        }
+
+        if (picture) {
+          const sources = picture.querySelectorAll('source');
+          sources.forEach((source) => {
+            const srcset = source.dataset.srcset;
+            if (srcset) {
+              source.srcset = srcset;
+              source.removeAttribute('data-srcset');
+            }
+          });
+        }
+
+        img.classList.remove('lazy-image');
+        observer.unobserve(img);
+      });
+    },
+    { rootMargin: '100px' }
+  );
+
+  // Function to observe new lazy images
+  const observeNewImages = (images) => {
+    images.forEach((img) => {
+      if (!img.classList.contains('lazy-image')) return; // Skip if already loaded
+      observer.observe(img);
+    });
+  };
+
+  // Observe initial images
+  observeNewImages(lazyImages);
+
+  // Use MutationObserver to detect dynamically added images (e.g., Splide clones)
+  const mutationObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          // Check if the added node is a lazy image
+          if (node.classList && node.classList.contains('lazy-image')) {
+            observeNewImages([node]);
+          }
+          // Also check descendants
+          const newLazyImages = node.querySelectorAll ? node.querySelectorAll('.lazy-image') : [];
+          observeNewImages(newLazyImages);
+        }
+      });
+    });
+  });
+
+  // Start observing the entire document for changes
+  mutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  // Fallback: Load all images after 5 seconds if JS fails
+  const fallbackTimer = setTimeout(() => {
+    const allLazyImages = document.querySelectorAll('.lazy-image');
+    allLazyImages.forEach((img) => {
+      const src = img.dataset.src;
+      const picture = img.closest('picture');
+
+      if (src) {
+        img.src = src;
+        img.removeAttribute('data-src');
+      }
+
+      if (picture) {
+        const sources = picture.querySelectorAll('source');
+        sources.forEach((source) => {
+          const srcset = source.dataset.srcset;
+          if (srcset) {
+            source.srcset = srcset;
+            source.removeAttribute('data-srcset');
+          }
+        });
+      }
+
+      img.classList.remove('lazy-image');
+    });
+    mutationObserver.disconnect(); // Stop observing after fallback
+  }, 5000);
+
+  const init = () => {
+    // Initial observation already done
+  };
+
+  if (document.readyState === 'complete') {
+    init();
+  } else {
+    window.addEventListener('load', init, { once: true });
+  }
+})();
+
+// Observe Section Visibility
+(function observeSectionVisibility() {
+  "use strict";
+
+  const sections = document.querySelectorAll('section');
+
+  if (!sections.length) return;
+
+  const visibilityObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !entry.target.hasAttribute('data-visible')) {
+          entry.target.setAttribute('data-visible', 'true');
+        }
+        // Do not remove the attribute when exiting
+      });
+    },
+    { rootMargin: '0px', threshold: 0.1 } // Adjust threshold as needed
+  );
+
+  const initVisibility = () => {
+    sections.forEach((section) => visibilityObserver.observe(section));
+  };
+
+  if (document.readyState === 'complete') {
+    initVisibility();
+  } else {
+    window.addEventListener('load', initVisibility, { once: true });
+  }
+})();
+

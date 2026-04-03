@@ -1,3 +1,41 @@
+if (!window.loadSplide) {
+  window.loadSplide = (callback) => {
+    if (typeof Splide !== "undefined") return callback();
+    if (window.__splideLoading) {
+      window.__splideCallbacks = window.__splideCallbacks || [];
+      window.__splideCallbacks.push(callback);
+      return;
+    }
+    window.__splideLoading = true;
+    window.__splideCallbacks = [callback];
+    if (!window.splideData || !window.splideData.url) {
+      console.error("Splide data not available");
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = splideData.url;
+    script.onload = () => {
+      const checkSplide = (attempts = 0) => {
+        if (typeof Splide !== "undefined") {
+          window.__splideCallbacks.forEach((fn) => fn());
+          window.__splideCallbacks = [];
+          return;
+        }
+        if (attempts < 10) {
+          setTimeout(() => checkSplide(attempts + 1), 100);
+        } else {
+          console.error("Splide failed to load after retries");
+        }
+      };
+      checkSplide();
+    };
+    script.onerror = () => {
+      console.error("Failed to load Splide script");
+    };
+    document.head.appendChild(script);
+  };
+}
+
 (() => {
   const logosCarousels = document.querySelectorAll(
     ".logos-carousel__carousel .splide",
@@ -21,26 +59,28 @@
 
       const maxPerPage = Math.max(effectiveBase, effectiveTablet, effectiveLdpi);
 
-      new Splide(splideEl, {
-        type: slidesCount > maxPerPage ? 'loop' : 'slide',
-        perPage: effectiveBase,
-        perMove: effectiveBase,
-        arrows: false,
-        pagination: slidesCount > effectiveBase,
-        accessibility: true,
-        slideFocus: false,
-        mediaQuery: "min",
-        breakpoints: {
-          [tablet]: {
-            perPage: effectiveTablet,
-            perMove: effectiveTablet,
+      loadSplide(() => {
+        new Splide(splideEl, {
+          type: slidesCount > maxPerPage ? 'loop' : 'slide',
+          perPage: effectiveBase,
+          perMove: effectiveBase,
+          arrows: false,
+          pagination: slidesCount > effectiveBase,
+          accessibility: true,
+          slideFocus: false,
+          mediaQuery: "min",
+          breakpoints: {
+            [tablet]: {
+              perPage: effectiveTablet,
+              perMove: effectiveTablet,
+            },
+            [ldpi]: {
+              perPage: effectiveLdpi,
+              perMove: effectiveLdpi,
+            },
           },
-          [ldpi]: {
-            perPage: effectiveLdpi,
-            perMove: effectiveLdpi,
-          },
-        },
-      }).mount();
+        }).mount();
+      });
     }
   }
 })();
