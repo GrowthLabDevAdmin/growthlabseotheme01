@@ -278,10 +278,10 @@ function findConsecutiveGroups() {
     });
   });
 
-  // Si no hay grupos o no se completa el proceso de observación, ejecuta fallback
-  if (groups.length === 0) {
-    lazyLoadBgBicolor();
-  }
+  // Always execute lazy load for:
+  // - Non-consecutive bg-bicolor sections
+  // - Groups that haven't entered viewport yet
+  lazyLoadBgBicolor();
 }
 
 // Lazy Load Background Images for .bg-bicolor
@@ -477,7 +477,7 @@ window.addEventListener("load", () => {
 (function lazyLoadImages() {
   "use strict";
 
-  const lazyImages = document.querySelectorAll('.lazy-image');
+  const lazyImages = document.querySelectorAll(".lazy-image");
 
   if (!lazyImages.length) return;
 
@@ -488,35 +488,35 @@ window.addEventListener("load", () => {
 
         const img = entry.target;
         const src = img.dataset.src;
-        const picture = img.closest('picture');
+        const picture = img.closest("picture");
 
         if (src) {
           img.src = src;
-          img.removeAttribute('data-src');
+          img.removeAttribute("data-src");
         }
 
         if (picture) {
-          const sources = picture.querySelectorAll('source');
+          const sources = picture.querySelectorAll("source");
           sources.forEach((source) => {
             const srcset = source.dataset.srcset;
             if (srcset) {
               source.srcset = srcset;
-              source.removeAttribute('data-srcset');
+              source.removeAttribute("data-srcset");
             }
           });
         }
 
-        img.classList.remove('lazy-image');
+        img.classList.remove("lazy-image");
         observer.unobserve(img);
       });
     },
-    { rootMargin: '100px' }
+    { rootMargin: "100px" },
   );
 
   // Function to observe new lazy images
   const observeNewImages = (images) => {
     images.forEach((img) => {
-      if (!img.classList.contains('lazy-image')) return; // Skip if already loaded
+      if (!img.classList.contains("lazy-image")) return; // Skip if already loaded
       observer.observe(img);
     });
   };
@@ -530,11 +530,13 @@ window.addEventListener("load", () => {
       mutation.addedNodes.forEach((node) => {
         if (node.nodeType === Node.ELEMENT_NODE) {
           // Check if the added node is a lazy image
-          if (node.classList && node.classList.contains('lazy-image')) {
+          if (node.classList && node.classList.contains("lazy-image")) {
             observeNewImages([node]);
           }
           // Also check descendants
-          const newLazyImages = node.querySelectorAll ? node.querySelectorAll('.lazy-image') : [];
+          const newLazyImages = node.querySelectorAll
+            ? node.querySelectorAll(".lazy-image")
+            : [];
           observeNewImages(newLazyImages);
         }
       });
@@ -544,33 +546,33 @@ window.addEventListener("load", () => {
   // Start observing the entire document for changes
   mutationObserver.observe(document.body, {
     childList: true,
-    subtree: true
+    subtree: true,
   });
 
   // Fallback: Load all images after 5 seconds if JS fails
   const fallbackTimer = setTimeout(() => {
-    const allLazyImages = document.querySelectorAll('.lazy-image');
+    const allLazyImages = document.querySelectorAll(".lazy-image");
     allLazyImages.forEach((img) => {
       const src = img.dataset.src;
-      const picture = img.closest('picture');
+      const picture = img.closest("picture");
 
       if (src) {
         img.src = src;
-        img.removeAttribute('data-src');
+        img.removeAttribute("data-src");
       }
 
       if (picture) {
-        const sources = picture.querySelectorAll('source');
+        const sources = picture.querySelectorAll("source");
         sources.forEach((source) => {
           const srcset = source.dataset.srcset;
           if (srcset) {
             source.srcset = srcset;
-            source.removeAttribute('data-srcset');
+            source.removeAttribute("data-srcset");
           }
         });
       }
 
-      img.classList.remove('lazy-image');
+      img.classList.remove("lazy-image");
     });
     mutationObserver.disconnect(); // Stop observing after fallback
   }, 5000);
@@ -579,10 +581,10 @@ window.addEventListener("load", () => {
     // Initial observation already done
   };
 
-  if (document.readyState === 'complete') {
+  if (document.readyState === "complete") {
     init();
   } else {
-    window.addEventListener('load', init, { once: true });
+    window.addEventListener("load", init, { once: true });
   }
 })();
 
@@ -590,30 +592,32 @@ window.addEventListener("load", () => {
 (function observeSectionVisibility() {
   "use strict";
 
-  const sections = document.querySelectorAll('section');
+  const sections = document.querySelectorAll("section");
 
   if (!sections.length) return;
 
   const visibilityObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting && !entry.target.hasAttribute('data-visible')) {
-          entry.target.setAttribute('data-visible', 'true');
+        if (
+          entry.isIntersecting &&
+          !entry.target.hasAttribute("data-visible")
+        ) {
+          entry.target.setAttribute("data-visible", "true");
         }
         // Do not remove the attribute when exiting
       });
     },
-    { rootMargin: '0px', threshold: 0.1 } // Adjust threshold as needed
+    { rootMargin: "0px", threshold: 0.1 }, // Adjust threshold as needed
   );
 
   const initVisibility = () => {
     sections.forEach((section) => visibilityObserver.observe(section));
   };
 
-  if (document.readyState === 'complete') {
+  if (document.readyState === "complete") {
     initVisibility();
   } else {
-    window.addEventListener('load', initVisibility, { once: true });
+    window.addEventListener("load", initVisibility, { once: true });
   }
 })();
-

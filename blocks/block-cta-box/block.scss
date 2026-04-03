@@ -5,7 +5,13 @@
   position: relative;
   overflow-y: visible;
   @include m.flex-center;
-  content-visibility: visible;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  &[data-visible="true"] {
+    content-visibility: visible;
+    opacity: 1;
+  }
 
   $parent: &;
 
@@ -58,7 +64,8 @@
       visibility: hidden;
       transition:
         opacity 0.3s ease,
-        visibility 0s 0.3s, // ✅ CORREGIDO: delay visibility
+        visibility 0s 0.3s,
+        // ✅ CORREGIDO: delay visibility
         margin-top 0.15s ease,
         padding-bottom 0.15s ease;
     }
@@ -75,7 +82,8 @@
       visibility: visible;
       transition:
         opacity 0.2s ease,
-        visibility 0s, // ✅ CORREGIDO: no delay when showing
+        visibility 0s,
+        // ✅ CORREGIDO: no delay when showing
         margin-top 0.15s ease,
         padding-bottom 0.15s ease;
     }
