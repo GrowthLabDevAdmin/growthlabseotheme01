@@ -1,4 +1,35 @@
 <?php
+
+/**
+ * Helper interno — construye el array de colores del tema sanitizado
+ * para uso en TinyMCE.
+ */
+if (!function_exists('_theme_get_tinymce_color_map')) {
+    function _theme_get_tinymce_color_map(): array
+    {
+        $colors = [
+            sanitize_hex_color(get_theme_mod('primary_color', '#15253f')) ?: '#15253f' => 'Primary Color',
+            sanitize_hex_color(get_theme_mod('primary_color_dark', '#08182f')) ?: '#08182f' => 'Primary Dark',
+            sanitize_hex_color(get_theme_mod('primary_color_light', '#2C3D5B')) ?: '#2C3D5B' => 'Primary Light',
+            sanitize_hex_color(get_theme_mod('secondary_color', '#F4F3EE')) ?: '#F4F3EE' => 'Secondary Color',
+            sanitize_hex_color(get_theme_mod('secondary_color_dark', '#E7E5DF')) ?: '#E7E5DF' => 'Secondary Dark',
+            sanitize_hex_color(get_theme_mod('secondary_color_light', '#FFFFFF')) ?: '#FFFFFF' => 'Secondary Light',
+            sanitize_hex_color(get_theme_mod('tertiary_color', '#BC9061')) ?: '#BC9061' => 'Tertiary Color',
+            sanitize_hex_color(get_theme_mod('tertiary_color_dark', '#9D7A55')) ?: '#9D7A55' => 'Tertiary Dark',
+            sanitize_hex_color(get_theme_mod('tertiary_color_light', '#DCAB77')) ?: '#DCAB77' => 'Tertiary Light',
+            sanitize_hex_color(get_theme_mod('text_color', '#15253f')) ?: '#15253f' => 'Text Color',
+        ];
+
+        $map = [];
+        foreach ($colors as $hex => $name) {
+            $map[] = str_replace('#', '', $hex);
+            $map[] = $name;
+        }
+
+        return $map;
+    }
+}
+
 // 1️⃣ Load editor CSS
 function my_acf_editor_styles($mce_css)
 {
@@ -74,87 +105,36 @@ add_filter('acf/fields/wysiwyg/toolbars', 'my_acf_override_full_toolbar');
 
 
 // 5️⃣ Inject colors dynamically with JavaScript
-function my_acf_tinymce_colors_script()
-{
-    // Get colors dynamically from PHP
-    $colors = array(
-        get_theme_mod('primary_color', '#15253f') => 'Primary Color',
-        get_theme_mod('primary_color_dark', '#08182f') => 'Primary Dark',
-        get_theme_mod('primary_color_light', '#2C3D5B') => 'Primary Light',
-        get_theme_mod('secondary_color', '#F4F3EE') => 'Secondary Color',
-        get_theme_mod('secondary_color_dark', '#E7E5DF') => 'Secondary Dark',
-        get_theme_mod('secondary_color_light', '#FFFFFF') => 'Secondary Light',
-        get_theme_mod('tertiary_color', '#BC9061') => 'Tertiary Color',
-        get_theme_mod('tertiary_color_dark', '#9D7A55') => 'Tertiary Dark',
-        get_theme_mod('tertiary_color_light', '#DCAB77') => 'Tertiary Light',
-        get_theme_mod('text_color', '#15253f') => 'Text Color',
-    );
-
-    // Build JavaScript array
-    $color_array = array();
-    foreach ($colors as $hex => $name) {
-        $color_array[] = str_replace('#', '', $hex);
-        $color_array[] = $name;
-    }
-
-    // Convert to valid JSON
-    $colors_json = json_encode($color_array);
+if (!function_exists('my_acf_tinymce_colors_script')) {
+    function my_acf_tinymce_colors_script()
+    {
+        $colors_json = wp_json_encode(_theme_get_tinymce_color_map());
 ?>
-    <script type="text/javascript">
-        (function($) {
-            // Custom colors from PHP
-            var customColors = <?php echo $colors_json; ?>;
+        <script type="text/javascript">
+            (function($) {
+                var customColors = <?php echo $colors_json; ?>;
 
-            //console.log('🎨 Colors loaded from PHP:', customColors);
+                acf.addFilter('wysiwyg_tinymce_settings', function(mceInit, id, field) {
+                    mceInit.textcolor_map = customColors;
+                    mceInit.textcolor_cols = 5;
+                    return mceInit;
+                });
 
-            // Hook BEFORE ACF initializes TinyMCE
-            acf.addFilter('wysiwyg_tinymce_settings', function(mceInit, id, field) {
-                //console.log('🔧 Modifying configuration for:', id);
-
-                // Inject custom colors
-                mceInit.textcolor_map = customColors;
-                mceInit.textcolor_cols = 5;
-
-                //console.log('✅ Colors injected:', mceInit.textcolor_map);
-
-                return mceInit;
-            });
-
-        })(jQuery);
-    </script>
-<?php
+            })(jQuery);
+        </script>
+    <?php
+    }
 }
 add_action('acf/input/admin_head', 'my_acf_tinymce_colors_script');
 
 // 6️⃣ Inject colors directamente en la configuración de TinyMCE
-function my_wp_editor_colors_direct($init)
-{
-    // Get colors dynamically from PHP
-    $colors = array(
-        get_theme_mod('primary_color', '#15253f') => 'Primary Color',
-        get_theme_mod('primary_color_dark', '#08182f') => 'Primary Dark',
-        get_theme_mod('primary_color_light', '#2C3D5B') => 'Primary Light',
-        get_theme_mod('secondary_color', '#F4F3EE') => 'Secondary Color',
-        get_theme_mod('secondary_color_dark', '#E7E5DF') => 'Secondary Dark',
-        get_theme_mod('secondary_color_light', '#FFFFFF') => 'Secondary Light',
-        get_theme_mod('tertiary_color', '#BC9061') => 'Tertiary Color',
-        get_theme_mod('tertiary_color_dark', '#9D7A55') => 'Tertiary Dark',
-        get_theme_mod('tertiary_color_light', '#DCAB77') => 'Tertiary Light',
-        get_theme_mod('text_color', '#15253f') => 'Text Color',
-    );
-
-    // Build color array alternando hex y nombre
-    $color_array = array();
-    foreach ($colors as $hex => $name) {
-        $color_array[] = str_replace('#', '', $hex);  // hex sin #
-        $color_array[] = $name;                        // nombre del color
+if (!function_exists('my_wp_editor_colors_direct')) {
+    function my_wp_editor_colors_direct($init)
+    {
+        $init['textcolor_map']  = _theme_get_tinymce_color_map();
+        $init['textcolor_cols'] = 5;
+        return $init;
     }
-
-    // Inyectar en el init
-    $init['textcolor_map'] = $color_array;
-    $init['textcolor_cols'] = 5;
-
-    return $init;
 }
 add_filter('tiny_mce_before_init', 'my_wp_editor_colors_direct', 10);
 
@@ -168,52 +148,52 @@ function my_wp_editor_formats()
         array(
             'name'  => __('Primary Color', 'growthlabtheme01'),
             'slug'  => 'primary',
-            'color' => get_theme_mod('primary_color', '#15253f'),
+            'color' => sanitize_hex_color(get_theme_mod('primary_color', '#15253f')) ?: '#15253f',
         ),
         array(
             'name'  => __('Primary Dark', 'growthlabtheme01'),
             'slug'  => 'primary-dark',
-            'color' => get_theme_mod('primary_color_dark', '#08182f'),
+            'color' => sanitize_hex_color(get_theme_mod('primary_color_dark', '#08182f')) ?: '#08182f',
         ),
         array(
             'name'  => __('Primary Light', 'growthlabtheme01'),
             'slug'  => 'primary-light',
-            'color' => get_theme_mod('primary_color_light', '#2C3D5B'),
+            'color' => sanitize_hex_color(get_theme_mod('primary_color_light', '#2C3D5B')) ?: '#2C3D5B',
         ),
         array(
             'name'  => __('Secondary Color', 'growthlabtheme01'),
             'slug'  => 'secondary',
-            'color' => get_theme_mod('secondary_color', '#F4F3EE'),
+            'color' => sanitize_hex_color(get_theme_mod('secondary_color', '#F4F3EE')) ?: '#F4F3EE',
         ),
         array(
             'name'  => __('Secondary Dark', 'growthlabtheme01'),
             'slug'  => 'secondary-dark',
-            'color' => get_theme_mod('secondary_color_dark', '#E7E5DF'),
+            'color' => sanitize_hex_color(get_theme_mod('secondary_color_dark', '#E7E5DF')) ?: '#E7E5DF',
         ),
         array(
             'name'  => __('Secondary Light', 'growthlabtheme01'),
             'slug'  => 'secondary-light',
-            'color' => get_theme_mod('secondary_color_light', '#FFFFFF'),
+            'color' => sanitize_hex_color(get_theme_mod('secondary_color_light', '#FFFFFF')) ?: '#FFFFFF',
         ),
         array(
             'name'  => __('Tertiary Color', 'growthlabtheme01'),
             'slug'  => 'tertiary',
-            'color' => get_theme_mod('tertiary_color', '#BC9061'),
+            'color' => sanitize_hex_color(get_theme_mod('tertiary_color', '#BC9061')) ?: '#BC9061',
         ),
         array(
             'name'  => __('Tertiary Dark', 'growthlabtheme01'),
             'slug'  => 'tertiary-dark',
-            'color' => get_theme_mod('tertiary_color_dark', '#9D7A55'),
+            'color' => sanitize_hex_color(get_theme_mod('tertiary_color_dark', '#9D7A55')) ?: '#9D7A55',
         ),
         array(
             'name'  => __('Tertiary Light', 'growthlabtheme01'),
             'slug'  => 'tertiary-light',
-            'color' => get_theme_mod('tertiary_color_light', '#DCAB77'),
+            'color' => sanitize_hex_color(get_theme_mod('tertiary_color_light', '#DCAB77')) ?: '#DCAB77',
         ),
         array(
             'name'  => __('Text Color', 'growthlabtheme01'),
             'slug'  => 'text',
-            'color' => get_theme_mod('text_color', '#15253f'),
+            'color' => sanitize_hex_color(get_theme_mod('text_color', '#15253f')) ?: '#15253f',
         ),
     ));
 }
@@ -232,7 +212,7 @@ function my_wp_editor_default_settings($init)
     $init['toolbar1'] = 'formatselect,fontselect,fontsizeselect,bold,italic,underline,forecolor,backcolor,bullist,numlist,alignleft,aligncenter,alignright,link,unlink,removeformat,undo,redo';
     $init['toolbar2'] = '';
 
-    $init['textcolor_map'] = isset($init['textcolor_map']) ? $init['textcolor_map'] : array();
+    $init['textcolor_map'] = ! empty($init['textcolor_map']) ? $init['textcolor_map'] : _theme_get_tinymce_color_map();
     $init['textcolor_cols'] = 5;
     $init['plugins'] = (isset($init['plugins']) ? $init['plugins'] : '') . ' textcolor';
 
@@ -243,27 +223,7 @@ add_filter('tiny_mce_before_init', 'my_wp_editor_default_settings', 20);
 // Inyecta colores directamente en cada instancia de TinyMCE cuando se crea (más fiable)
 function my_wp_editor_colors_apply_on_add()
 {
-    $colors = array(
-        get_theme_mod('primary_color', '#15253f') => 'Primary Color',
-        get_theme_mod('primary_color_dark', '#08182f') => 'Primary Dark',
-        get_theme_mod('primary_color_light', '#2C3D5B') => 'Primary Light',
-        get_theme_mod('secondary_color', '#F4F3EE') => 'Secondary Color',
-        get_theme_mod('secondary_color_dark', '#E7E5DF') => 'Secondary Dark',
-        get_theme_mod('secondary_color_light', '#FFFFFF') => 'Secondary Light',
-        get_theme_mod('tertiary_color', '#BC9061') => 'Tertiary Color',
-        get_theme_mod('tertiary_color_dark', '#9D7A55') => 'Tertiary Dark',
-        get_theme_mod('tertiary_color_light', '#DCAB77') => 'Tertiary Light',
-        get_theme_mod('text_color', '#15253f') => 'Text Color',
-    );
-
-    // Format TinyMCE expects: ['RRGGBB','Name',...]
-    $map = array();
-    foreach ($colors as $hex => $name) {
-        $map[] = str_replace('#', '', $hex);
-        $map[] = $name;
-    }
-
-    $map_json = json_encode($map);
+    $map_json = wp_json_encode(_theme_get_tinymce_color_map());
     ?>
     <script type="text/javascript">
     (function($){
