@@ -101,7 +101,7 @@ if (get_field('toggle_block')):
                                         "tag" => $posts_title_tag ?? "",
                                         "content" => $role,
                                         "link_url" => get_the_permalink(),
-                                        "link_target" => '_blank',
+                                        "link_target" => '_self',
                                     ));
                                     break;
 
@@ -114,7 +114,7 @@ if (get_field('toggle_block')):
                                         "tag" => $posts_title_tag ?? "",
                                         "excerpt" => get_the_excerpt(),
                                         "link_url" => get_the_permalink(),
-                                        "link_target" => '_blank',
+                                        "link_target" => '_self',
                                     ));
                                     break;
 
@@ -139,7 +139,7 @@ if (get_field('toggle_block')):
                                         "tag" => $posts_title_tag ?? "",
                                         "content" => get_the_excerpt(),
                                         "link_url" => get_the_permalink(),
-                                        "link_target" => '_blank',
+                                        "link_target" => '_self',
                                     ));
                                     break;
                             }
