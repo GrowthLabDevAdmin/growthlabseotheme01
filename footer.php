@@ -47,7 +47,7 @@
 
             </div>
 
-            <?php if ($side_picture) img_print_picture_tag(img: $side_picture, max_size: "large", min_size: "medium",  classes: "contact-form-footer__side-pic shadow-box"); ?>
+            <?php if ($side_picture) img_print_picture_tag(img: $side_picture, max_size: "large", min_size: "featured-small",  classes: "contact-form-footer__side-pic shadow-box"); ?>
           </div>
 
         </div>

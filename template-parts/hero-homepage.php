@@ -61,11 +61,11 @@ if (!$bg_mobile) $bg_mobile = [];
                 <div class="hero__badges">
                     <?php foreach ($badges as $badge) {
                         $pic = $badge['badge'];
-                        img_print_picture_tag(img: $pic, classes: "hero__badge", is_priority: false, max_size: "medium");
+                        img_print_picture_tag(img: $pic, classes: "hero__badge", is_priority: false, max_size: "medium", min_size: "thumbnail");
                     } ?>
                 </div>
             <?php endif ?>
         </div>
-        <?php if ($side_portrait) img_print_picture_tag(img: $side_portrait, max_size: "large", min_size: "medium", classes: "hero__side-portrait", is_priority: true); ?>
+        <?php if ($side_portrait) img_print_picture_tag(img: $side_portrait, max_size: "content", min_size: "featured-small", classes: "hero__side-portrait", is_priority: true); ?>
     </div>
 </section>
