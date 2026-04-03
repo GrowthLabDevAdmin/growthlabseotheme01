@@ -1,21 +1,38 @@
 <?php
 
 // Helper function to get ACF option fields
-function get_field_options($field_name, $format_value = true)
-{
-    return get_field($field_name, 'option', $format_value);
+if (!function_exists('get_field_options')) {
+    function get_field_options($field_name, $format_value = true)
+    {
+        if (empty($field_name) || !is_string($field_name)) return null;
+
+        static $cache = [];
+        $key = $field_name . '|' . ($format_value ? '1' : '0');
+        if (array_key_exists($key, $cache)) {
+            return $cache[$key];
+        }
+
+        $value       = get_field($field_name, 'option', $format_value);
+        $cache[$key] = $value;
+        return $value;
+    }
 }
 
 // Language Filter
-function filterContentByLanguage($lang = 'es')
-{
-    if (empty($lang)) return false;
+if (!function_exists('filterContentByLanguage')) {
+    function filterContentByLanguage($lang = 'es')
+    {
+        if (empty($lang) || !is_string($lang)) return false;
 
-    $current_url = $_SERVER['REQUEST_URI'] ?? '/';
-    $lang_escaped = preg_quote($lang, '#');
-    $pattern = '#^/' . $lang_escaped . '(/|$)#';
+        $uri    = $_SERVER['REQUEST_URI'] ?? '/';
+        $path   = parse_url($uri, PHP_URL_PATH) ?: '/';
+        $prefix = '/' . ltrim($lang, '/');
 
-    return preg_match($pattern, $current_url) === 1;
+        if ($path === $prefix) return true;
+        if (strpos($path, $prefix . '/') === 0) return true;
+
+        return false;
+    }
 }
 
 //Phone number format remover
