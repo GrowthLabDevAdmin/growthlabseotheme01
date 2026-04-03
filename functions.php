@@ -311,23 +311,6 @@ add_filter('excerpt_more', 'wpdocs_excerpt_more');
  * @return void
  */
 
-// Function to check if Splide should be loaded
-function should_load_splide()
-{
-    if (!is_singular() || !function_exists('parse_blocks')) return false;
-
-    global $post;
-    if (!$post) return false;
-
-    $content = $post->post_content;
-    $blocks = parse_blocks($content);
-    foreach ($blocks as $block) {
-        if ($block['blockName'] === 'acf/posts-carousel' || $block['blockName'] === 'acf/logos-carousel') {
-            return true;
-        }
-    }
-    return false;
-}
 function inline_main_critical_css()
 {
     global $block_critical_css;
@@ -340,11 +323,9 @@ function inline_main_critical_css()
     $critical_css =  $color_scheme . $critical_css;
 
     // Add Splide critical CSS only when carousels are present
-    if (should_load_splide()) {
-        $splide_css_file = get_template_directory() . '/styles/vendor/splide/splide-core.min.css';
-        if (file_exists($splide_css_file)) {
-            $critical_css .= "\n/* Splide Critical CSS */\n" . file_get_contents($splide_css_file);
-        }
+    $splide_css_file = get_template_directory() . '/styles/vendor/splide/splide-core.min.css';
+    if (file_exists($splide_css_file)) {
+        $critical_css .= "\n/* Splide Critical CSS */\n" . file_get_contents($splide_css_file);
     }
 
     // Add block critical CSS if any
@@ -390,11 +371,9 @@ function growthlabtheme01_scripts()
     wp_script_add_data('growthlabtheme01-main-scripts', 'strategy', 'defer');
 
     // Third party JS scripts.
-    if (should_load_splide()) {
-        wp_localize_script('growthlabtheme01-main-scripts', 'splideData', [
-            'url' => get_template_directory_uri() . '/js/vendor/splide/splide-min.js',
-        ]);
-    }
+    wp_localize_script('growthlabtheme01-main-scripts', 'splideData', [
+        'url' => get_template_directory_uri() . '/js/vendor/splide/splide-min.js',
+    ]);
 
     // Load specific template stylesheet
     if (is_page() || is_single()) {
