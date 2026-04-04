@@ -1,12 +1,11 @@
 @use "../../styles/globals/variables" as v;
 @use "../../styles/globals/mixins" as m;
 
-
 .faq {
-  padding: var(--sp-xsm) 0;
+  padding: var(--sp-xsm) 0 var(--sp-md);
 
   @media (min-width: v.$ldpi) {
-    padding: var(--sp-lg) 0;
+    padding: var(--sp-xsm) 0 var(--sp-lg);
   }
 
   $parent: &;

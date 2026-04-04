@@ -2,7 +2,11 @@
 @use "../../styles/globals/mixins" as m;
 
 .selling-points {
-  padding: var(--sp-xsm) 0;
+  padding: var(--sp-xsm) 0 var(--sp-md);
+
+  @media (min-width: v.$ldpi) {
+    padding: var(--sp-xsm) 0 var(--sp-lg);
+  }
 
   $parent: &;
 
@@ -12,7 +16,7 @@
     gap: var(--sp-xsm);
 
     @media (min-width: v.$ldpi) {
-      padding: var(--sp-sm);
+      padding: 0 var(--sp-sm);
     }
   }
 
@@ -101,7 +105,11 @@
 
   &__title {
     flex: 0 0 calc(100% - 72px);
-    @include m.title(null, 2.4rem, 2.5vw, 3.2rem);
+    @include m.title(null, 2.4rem, 2.4vw, 2.8rem);
+
+    &:only-child {
+      margin-bottom: 0;
+    }
   }
 
   &__link {

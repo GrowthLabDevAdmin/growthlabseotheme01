@@ -24,13 +24,19 @@ if (get_field('toggle_block')):
                 <?php if ($title || $first_paragraph): ?>
                     <div class="content-intro__heading tx-center <?php if ($first_paragraph) echo "border-box"; ?>">
                         <?php
-                        print_title($title, $title_tag, "content-intro__title");
-                        get_template_part('template-parts/ampersand', 'separator', array('classes' => 'content-intro__separator'));
-                        echo $first_paragraph;
+                        if (isset($title) && $title) {
+                            print_title($title, $title_tag, "content-intro__title");
+                            get_template_part('template-parts/ampersand', 'separator', array('classes' => 'content-intro__separator'));
+                        }
+
+                        if (isset($first_paragraph) && $first_paragraph):
                         ?>
+                            <div class="content-intro__heading-text formatted-text tx-center">
+                                <?= $first_paragraph;  ?>
+                            </div>
+                        <?php endif ?>
                     </div>
                 <?php endif ?>
-
 
                 <div class="content-intro__content formatted-text">
 

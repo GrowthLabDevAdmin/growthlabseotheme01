@@ -206,6 +206,10 @@ p {
   }
 
   &--loaded {
+    &:has([data-visible="true"]) {
+      content-visibility: visible;
+    }
+
     &::after {
       width: 100%;
       height: 100%;

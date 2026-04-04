@@ -84,7 +84,7 @@ function checkVisible() {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", checkVisible, { once: true });
+  window.addEventListener("load", checkVisible, { once: true });
 } else {
   checkVisible();
 }

@@ -17,9 +17,11 @@ if (get_field('toggle_block')):
         <div class="selling-points__wrapper container">
 
             <?php
-            print_title($title, $title_tag, "selling-points__title");
-            get_template_part('template-parts/ampersand', 'separator', array('classes' => 'selling-points__separator'));
-            if ($text_content):
+            if (isset($title) && $title) {
+                print_title($title, $title_tag, "selling-points__title");
+                get_template_part('template-parts/ampersand', 'separator', array('classes' => 'selling-points__separator'));
+            }
+            if (isset($text_content) && $text_content):
             ?>
                 <div class="selling-points__content formatted-text tx-center">
                     <?= $text_content ?>

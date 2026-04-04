@@ -246,6 +246,7 @@ section.contact-form--side-pic:has(+ .site-footer .contact-form-footer) {
   .copyright-footer {
     width: 100%;
     padding: var(--sp-xsm) 0;
+    background-color: rgb(var(--secondary-light));
 
     @media (min-width: v.$mdpi) {
       padding: var(--sp-sm) 0;

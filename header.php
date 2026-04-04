@@ -26,7 +26,17 @@ if (!defined('ABSPATH')) {
     $es = filterContentByLanguage() ? '_es' : '';
     $options = get_field_options('options' . $es);
     foreach ($options as $key => $value) $$key = $value;
+
+    $logo_link = esc_url(home_url('/' . $es));
     $phone_number = $contact_phone ?: $main_phone_number;
+
+    if (get_field('custom_header', $post_id)) {
+        $logo_link = get_field('logo_link', $post_id) ?? '#';
+        $phone_number = get_field("contact_phone", $post_id) ?? null;
+        $top_callout_first_line = get_field("top_callout_first_line", $post_id) ?: '';
+        $top_callout_second_line = get_field("top_callout_second_line", $post_id) ?: '';
+        $cta_button = get_field("cta_button", $post_id) ?? null;
+    }
     ?>
 
     <header role="banner" class="site-header <?= !is_404() && get_field('hero_style') !== "nohero" && $sticky_header ? "site-header--sticky" : "" ?>">
@@ -34,7 +44,7 @@ if (!defined('ABSPATH')) {
         <div class="site-header__wrapper container">
 
             <div class="site-header__logo">
-                <a href="<?php echo esc_url(home_url('/' . $es)); ?>" class="site-logo" aria-label="<?php echo esc_attr(get_bloginfo('name')); ?>">
+                <a href="<?= esc_url($logo_link); ?>" class="site-logo" aria-label="<?php echo esc_attr(get_bloginfo('name')); ?>">
                     <?php
                     if (function_exists('the_custom_logo') && has_custom_logo()) {
                         $custom_logo_id = get_theme_mod('custom_logo');
@@ -46,33 +56,45 @@ if (!defined('ABSPATH')) {
                 </a>
             </div>
 
-            <div class="site-header__navigation">
-                <button class="mobile-menu-button" role="button" aria-label="Mobile Menu Button">
-                    <svg viewBox="0 0 24 24" width="24" height="24">
-                        <line x1="2" y1="4" x2="22" y2="4" />
-                        <line x1="2" y1="12" x2="22" y2="12" />
-                        <line x1="2" y1="20" x2="22" y2="20" />
-                    </svg>
-                    <span>Mobile Menu Button</span>
-                </button>
+            <?php
+            if (get_field("custom_header", $post_id) || has_nav_menu('main')) {
+                $menu_args = array(
+                    'container'          => 'nav',
+                    'container_role'     => 'navigation',
+                    'container_class' => 'main-nav',
+                    'menu_class'      => 'main-nav__menu',
+                    'items_wrap'      => '<ul class="%2$s">%3$s</ul>',
+                    'link_before'          => '<span>',
+                    'link_after'              => '</span>'
+                );
 
-                <?php
-                if (has_nav_menu('main')) {
-                    wp_nav_menu(
-                        array(
-                            'theme_location'  => 'main' . $es,
-                            'container'          => 'nav',
-                            'container_role'     => 'navigation',
-                            'container_class' => 'main-nav',
-                            'menu_class'      => 'main-nav__menu',
-                            'items_wrap'      => '<ul class="%2$s">%3$s</ul>',
-                            'link_before'          => '<span>',
-                            'link_after'              => '</span>'
-                        )
-                    );
+                if (get_field("custom_header", $post_id)) {
+                    if (get_field("menu", $post_id)) {
+                        $menu_args['menu'] = get_field("menu", $post_id);
+                    } else {
+                        $menu_args = [];
+                    }
+                } else {
+                    $menu_args['theme_location'] = 'main' . $es;
                 }
-                ?>
-            </div>
+            }
+
+            if (!empty($menu_args)) :
+            ?>
+
+                <div class="site-header__navigation">
+                    <button class="mobile-menu-button" role="button" aria-label="Mobile Menu Button">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <line x1="2" y1="4" x2="22" y2="4" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <line x1="2" y1="20" x2="22" y2="20" />
+                        </svg>
+                        <span>Mobile Menu Button</span>
+                    </button>
+
+                    <?php wp_nav_menu($menu_args); ?>
+                </div>
+            <?php endif; ?>
 
             <?php if ($cta_button): ?>
                 <div class="site-header__cta">

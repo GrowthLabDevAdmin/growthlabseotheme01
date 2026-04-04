@@ -88,7 +88,7 @@
 
   &__badges {
     width: 100%;
-    margin-top: var(--sp-sm);
+    margin-block: var(--sp-sm);
     display: flex;
     flex-wrap: wrap;
     gap: var(--sp-sm);
@@ -99,11 +99,6 @@
       width: 120px;
       height: 120px;
       display: flex;
-
-      @media (min-width: v.$ldpi) {
-        width: 180px;
-        height: 180px;
-      }
 
       img {
         width: 100%;
