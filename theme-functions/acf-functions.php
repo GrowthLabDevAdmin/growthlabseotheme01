@@ -3,8 +3,8 @@
 -------------------------------------------------------------- */
 
 // Custom Block Categories
-if (!function_exists('growthlabtheme01_blocks_category')) {
-    function growthlabtheme01_blocks_category($categories, $post)
+if (!function_exists('theme_blocks_category')) {
+    function theme_blocks_category($categories, $post)
     {
         $theme      = wp_get_theme();
         $theme_name = $theme->get('Name');
@@ -21,7 +21,7 @@ if (!function_exists('growthlabtheme01_blocks_category')) {
         );
     }
 }
-add_filter('block_categories_all', 'growthlabtheme01_blocks_category', 10, 2);
+add_filter('block_categories_all', 'theme_blocks_category', 10, 2);
 
 // Register Block Types with caching to prevent memory bloat during cache flushes
 if (!function_exists('register_acf_blocks')) {
@@ -122,7 +122,7 @@ add_action('wp_enqueue_scripts', function () {
     // Group blocks by type (e.g., 'posts-carousel' for 'acf/posts-carousel')
     $blocks_by_type = array();
     foreach ($blocks_in_use as $block_name) {
-        $type = str_replace('acf/', '', $block_name); // Extract type from 'acf/type-name'
+        $type = str_replace('acf/', '', $block_name);
         if (!isset($blocks_by_type[$type])) {
             $blocks_by_type[$type] = array();
         }
@@ -156,7 +156,7 @@ add_action('wp_enqueue_scripts', function () {
                 }
 
                 if (empty($css_file) || !file_exists($css_file)) {
-                    // fallback: try from registered style source URL
+                    // Fallback: try from registered style source URL
                     $style_src = wp_styles()->registered[$block_type->style]->src ?? '';
                     $css_file  = str_replace(get_template_directory_uri(), get_template_directory(), $style_src);
                 }
@@ -189,77 +189,115 @@ add_action('wp_enqueue_scripts', function () {
 
 
 /**
+ * Remove style links for blocks that have CSS inlined
+ */
+add_filter('style_loader_tag', function ($tag, $handle) {
+    global $blocks_in_use_css;
+
+    // Skip inline <style> for core block CSS handles (already covered in critical CSS)
+    $core_block_styles = array(
+        'wp-block-library',
+        'wp-block-library-theme',
+        'global-styles',
+        'wc-blocks-style',
+    );
+
+    if (in_array($handle, $core_block_styles, true)) {
+        return '';
+    }
+
+    if (empty($blocks_in_use_css)) {
+        return $tag;
+    }
+
+    // Inline ACF block CSS handles can be named as '*-style-inline-css'.
+    if (str_ends_with($handle, '-inline-css')) {
+        $base_handle = substr($handle, 0, -strlen('-inline-css'));
+        if (str_starts_with($base_handle, 'acf-')) {
+            $block_name = 'acf/' . str_replace(['acf-', '-style'], '', $base_handle);
+            if (in_array($block_name, $blocks_in_use_css, true)) {
+                return '';
+            }
+        }
+    }
+
+    // Convert handle back to block name (e.g., 'acf-posts-carousel-style' -> 'acf/posts-carousel')
+    if (str_starts_with($handle, 'acf-') && str_ends_with($handle, '-style')) {
+        $block_name = str_replace(['acf-', '-style'], '', $handle);
+        $block_name = 'acf/' . $block_name;
+
+        if (in_array($block_name, $blocks_in_use_css, true)) {
+            return '';
+        }
+    }
+
+    return $tag;
+}, 10, 2);
+
+
+/**
  * Move block scripts to footer (only for blocks actually in use)
  * OPTIMIZED: Only process registered block scripts, not all scripts
  */
 add_action('wp_enqueue_scripts', function () {
     global $wp_scripts;
 
-    if (empty($wp_scripts->registered)) {
-        return;
-    }
+    if (empty($wp_scripts->registered)) return;
 
     $processed = 0;
     foreach ($wp_scripts->registered as $handle => $script) {
-        if (
-            !empty($script->src)
-            && str_contains($script->src, '/blocks/')
-        ) {
-            // Move to footer
-            $wp_scripts->registered[$handle]->extra['group'] = 1;
-            // Add defer
+        if (!empty($script->src) && str_contains($script->src, '/blocks/')) {
+            $wp_scripts->registered[$handle]->extra['group']    = 1;
             $wp_scripts->registered[$handle]->extra['strategy'] = 'defer';
 
             $processed++;
-            // Limit iterations to prevent excessive processing
-            if ($processed > 50) {
-                break;
-            }
+            if ($processed > 50) break;
         }
     }
 }, 999);
+
 
 /**
  * Render block filter (placeholder for custom logic)
  */
 add_filter('render_block', function ($block_content, $block) {
-    // You can add custom logic here if needed
     return $block_content;
 }, 10, 2);
+
 
 // Add ACF Options Page
 if (function_exists('acf_add_options_page') && current_user_can('manage_options')) {
     acf_add_options_page(array(
         'page_title' => 'Site Options',
         'menu_title' => 'Site Options',
-        'menu_slug' => 'site_options',
-        'position' => 70,
+        'menu_slug'  => 'site_options',
+        'position'   => 70,
         'capability' => 'manage_options',
-        'redirect' => false
+        'redirect'   => false
     ));
 }
 
 
-function my_acf_json_save_point($path)
-{
-    // Always save in child theme
-    return get_stylesheet_directory() . '/acf-json';
+if (!function_exists('my_acf_json_save_point')) {
+    function my_acf_json_save_point($path)
+    {
+        return get_stylesheet_directory() . '/acf-json';
+    }
 }
 
-function my_acf_json_load_point($paths)
-{
-    // Remove Default Path
-    unset($paths[0]);
+if (!function_exists('my_acf_json_load_point')) {
+    function my_acf_json_load_point($paths)
+    {
+        unset($paths[0]);
 
-    // Parent First
-    $paths[] = get_template_directory() . '/acf-json';
+        $paths[] = get_template_directory() . '/acf-json';
 
-    // Child Override
-    if (get_stylesheet_directory() !== get_template_directory()) {
-        $paths[] = get_stylesheet_directory() . '/acf-json';
+        if (get_stylesheet_directory() !== get_template_directory()) {
+            $paths[] = get_stylesheet_directory() . '/acf-json';
+        }
+
+        return $paths;
     }
-
-    return $paths;
 }
 
 add_filter('acf/settings/save_json', 'my_acf_json_save_point');
@@ -268,20 +306,22 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
 
 /**
  * Synchronize ACF Fields after theme updates (CI/CD Integration)
- * 
+ *
  * Automatically imports ACF fields from parent theme respecting:
  * - Child theme overrides (if exists)
  * - Changes made in the repository
  * - MD5 hash of JSON files to detect changes
- * 
+ *
  * SAFEGUARDS:
  * - Hash-based change detection (prevents unnecessary syncs)
  * - 30-second execution timeout (prevents memory bloat)
  */
-function growthlabtheme01_acf_sync_run()
-{
+$_theme_dir = basename(dirname(__FILE__, 2));
+
+$acf_sync = function () use ($_theme_dir) {
     if (!function_exists('acf_get_field_groups')) return;
     if (defined('ACF_DOING_SYNC')) return;
+    if ($_theme_dir !== get_stylesheet() && $_theme_dir !== get_template()) return;
 
     global $wpdb;
     $memory_start = memory_get_usage();
@@ -331,45 +371,39 @@ function growthlabtheme01_acf_sync_run()
 
         add_filter('acf/settings/save_json', '__return_false', 99);
 
-        // --- CPTs -------------------------------------------------------------
+        // ─── CPTs ─────────────────────────────────────────────────────────────
         foreach (glob($parent_json_path . '/post_type_*.json') ?: [] as $file) {
             if ((microtime(true) - $execution_start) > $max_execution_time) break;
-
             if (!is_readable($file)) {
                 $warnings++;
                 continue;
             }
-
             $json_data = json_decode(file_get_contents($file), true);
             if (empty($json_data) || !is_array($json_data)) {
                 $warnings++;
                 continue;
             }
-
             acf_update_post_type($json_data);
             $synced++;
         }
 
-        // --- Taxonomies -------------------------------------------------------
+        // ─── Taxonomías ───────────────────────────────────────────────────────
         foreach (glob($parent_json_path . '/taxonomy_*.json') ?: [] as $file) {
             if ((microtime(true) - $execution_start) > $max_execution_time) break;
-
             if (!is_readable($file)) {
                 $warnings++;
                 continue;
             }
-
             $json_data = json_decode(file_get_contents($file), true);
             if (empty($json_data) || !is_array($json_data)) {
                 $warnings++;
                 continue;
             }
-
             acf_update_taxonomy($json_data);
             $synced++;
         }
 
-        // --- Field Groups -----------------------------------------------------
+        // ─── Field Groups ─────────────────────────────────────────────────────
         $groups = acf_get_field_groups();
 
         $rows = $wpdb->get_results(
@@ -387,7 +421,6 @@ function growthlabtheme01_acf_sync_run()
 
         foreach ($groups as $group) {
             if ((microtime(true) - $execution_start) > $max_execution_time) break;
-
             if (empty($group['local']) || $group['local'] !== 'json') continue;
             if (in_array($group['key'], $processed_keys, true)) continue;
             $processed_keys[] = $group['key'];
@@ -410,9 +443,7 @@ function growthlabtheme01_acf_sync_run()
             }
 
             $existing_id = $existing_ids_by_name[$group['key']] ?? 0;
-            if ($existing_id) {
-                $json_data['ID'] = $existing_id;
-            }
+            if ($existing_id) $json_data['ID'] = $existing_id;
 
             acf_import_field_group($json_data);
 
@@ -426,24 +457,26 @@ function growthlabtheme01_acf_sync_run()
             $synced++;
         }
 
-        // --- Cleanup ----------------------------------------------------------
+        // ─── Cleanup ──────────────────────────────────────────────────────────
         remove_filter('acf/settings/save_json', '__return_false', 99);
 
         $status = $warnings === 0 ? 'OK' : 'COMPLETED WITH WARNINGS';
         error_log(
-            '[ACF sync] ' . $status . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings
+            '[ACF sync:' . $_theme_dir . '] ' . $status
+                . ' — synced: ' . $synced . ', skipped: ' . $skipped . ', warnings: ' . $warnings
                 . ' | mem: ' . round((memory_get_usage() - $memory_start) / 1024 / 1024, 2) . 'MB'
                 . ' | peak: ' . round(memory_get_peak_usage(true) / 1024 / 1024, 2) . 'MB'
                 . ' | time: ' . round(microtime(true) - $execution_start, 2) . 's'
         );
     } catch (Throwable $e) {
         remove_filter('acf/settings/save_json', '__return_false', 99);
-        error_log('[ACF sync] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
+        error_log('[ACF sync:' . $_theme_dir . '] ERROR — ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine());
     }
-}
+};
 
-add_action('wppusher_theme_was_updated',   'growthlabtheme01_acf_sync_run');
-add_action('wppusher_theme_was_installed', 'growthlabtheme01_acf_sync_run');
+add_action('wppusher_theme_was_updated',   $acf_sync);
+add_action('wppusher_theme_was_installed', $acf_sync);
+
 
 // Allow HTML in ACF fields
 add_filter('acf/shortcode/allow_unsafe_html', function () {
@@ -460,67 +493,35 @@ if (is_admin()) {
     add_filter('acf/admin/prevent_escaped_html_notice', '__return_true');
 }
 
+
 /**
  * ACF Color Picker Custom Palette
  * Adds custom color palette from Customizer to all ACF color picker fields
  */
 
-/**
- * Get theme colors from Customizer
- * @return array Array of colors with hex codes and names
- */
-function get_theme_color_palette_for_acf()
-{
-    return array(
-        array(
-            'name'  => 'Primary Color',
-            'color' => get_theme_mod('primary_color', '#15253f'),
-        ),
-        array(
-            'name'  => 'Primary Dark',
-            'color' => get_theme_mod('primary_color_dark', '#08182f'),
-        ),
-        array(
-            'name'  => 'Primary Light',
-            'color' => get_theme_mod('primary_color_light', '#2C3D5B'),
-        ),
-        array(
-            'name'  => 'Secondary Color',
-            'color' => get_theme_mod('secondary_color', '#F4F3EE'),
-        ),
-        array(
-            'name'  => 'Secondary Dark',
-            'color' => get_theme_mod('secondary_color_dark', '#E7E5DF'),
-        ),
-        array(
-            'name'  => 'Secondary Light',
-            'color' => get_theme_mod('secondary_color_light', '#FFFFFF'),
-        ),
-        array(
-            'name'  => 'Tertiary Color',
-            'color' => get_theme_mod('tertiary_color', '#BC9061'),
-        ),
-        array(
-            'name'  => 'Tertiary Dark',
-            'color' => get_theme_mod('tertiary_color_dark', '#9D7A55'),
-        ),
-        array(
-            'name'  => 'Tertiary Light',
-            'color' => get_theme_mod('tertiary_color_light', '#DCAB77'),
-        ),
-        array(
-            'name'  => 'Text Color',
-            'color' => get_theme_mod('text_color', '#15253f'),
-        ),
-    );
+if (!function_exists('get_theme_color_palette_for_acf')) {
+    function get_theme_color_palette_for_acf()
+    {
+        return array(
+            array('name' => 'Primary Color',    'color' => get_theme_mod('primary_color',         '#15253f')),
+            array('name' => 'Primary Dark',     'color' => get_theme_mod('primary_color_dark',    '#08182f')),
+            array('name' => 'Primary Light',    'color' => get_theme_mod('primary_color_light',   '#2C3D5B')),
+            array('name' => 'Secondary Color',  'color' => get_theme_mod('secondary_color',       '#F4F3EE')),
+            array('name' => 'Secondary Dark',   'color' => get_theme_mod('secondary_color_dark',  '#E7E5DF')),
+            array('name' => 'Secondary Light',  'color' => get_theme_mod('secondary_color_light', '#FFFFFF')),
+            array('name' => 'Tertiary Color',   'color' => get_theme_mod('tertiary_color',        '#BC9061')),
+            array('name' => 'Tertiary Dark',    'color' => get_theme_mod('tertiary_color_dark',   '#9D7A55')),
+            array('name' => 'Tertiary Light',   'color' => get_theme_mod('tertiary_color_light',  '#DCAB77')),
+            array('name' => 'Text Color',       'color' => get_theme_mod('text_color',            '#15253f')),
+        );
+    }
 }
-
 
 if (!function_exists('acf_color_picker_palette_script')) {
     function acf_color_picker_palette_script()
     {
-        $colors  = get_theme_color_palette_for_acf();
-        $palette = array_column($colors, 'color');
+        $colors       = get_theme_color_palette_for_acf();
+        $palette      = array_column($colors, 'color');
         $palette_json = json_encode($palette);
 ?>
         <script type="text/javascript">
@@ -545,17 +546,3 @@ if (!function_exists('acf_color_picker_palette_script')) {
     }
 }
 add_action('acf/input/admin_head', 'acf_color_picker_palette_script');
-//add_action('acf/input/admin_footer', 'acf_color_picker_palette_script');
-
-/**
- * Inject critical CSS for used blocks in <head>
- */
-add_action('wp_head', function () {
-    global $block_critical_css;
-
-    if (!empty($block_critical_css)) {
-        echo '<style id="block-critical-css">' . "\n";
-        echo $block_critical_css;
-        echo '</style>' . "\n";
-    }
-}, 1);
