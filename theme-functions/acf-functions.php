@@ -89,6 +89,14 @@ add_filter('should_load_separate_core_block_assets', '__return_true');
 add_action('wp_enqueue_scripts', function () {
     global $post;
 
+    if (empty($post->post_content) || strpos($post->post_content, '<!-- wp:') === false) {
+        // Buscar si hay una página estática asignada a este template
+        $queried = get_queried_object();
+        if ($queried instanceof WP_Post && !empty($queried->post_content)) {
+            $post = $queried;
+        }
+    }
+
     if (!is_singular() || empty($post->post_content)) return;
     if (strpos($post->post_content, '<!-- wp:') === false) return;
 
@@ -175,6 +183,7 @@ add_action('wp_enqueue_scripts', function () {
     $dequeued = 0;
     foreach ($registered_blocks as $block_name => $block_type) {
         if (in_array($block_name, $blocks_in_use)) continue;
+        if (str_starts_with($block_name, 'core/')) continue;
 
         if (!empty($block_type->style))         wp_dequeue_style($block_type->style);
         if (!empty($block_type->editor_style))  wp_dequeue_style($block_type->editor_style);
