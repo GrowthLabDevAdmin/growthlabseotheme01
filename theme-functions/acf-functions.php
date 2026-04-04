@@ -196,9 +196,7 @@ add_filter('style_loader_tag', function ($tag, $handle) {
 
     // Skip inline <style> for core block CSS handles (already covered in critical CSS)
     $core_block_styles = array(
-        'wp-block-library',
         'wp-block-library-theme',
-        'global-styles',
         'wc-blocks-style',
     );
 
