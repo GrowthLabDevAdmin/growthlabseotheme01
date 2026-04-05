@@ -144,6 +144,7 @@ add_action('wp_enqueue_scripts', function () {
     foreach ($blocks_by_type as $type => $block_names) {
         $type_css = '';
         foreach ($block_names as $block_name) {
+            if (str_starts_with($block_name, 'core/')) continue;
             if (!isset($registered_blocks[$block_name])) continue;
 
             $block_type = $registered_blocks[$block_name];
