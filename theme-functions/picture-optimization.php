@@ -246,6 +246,8 @@ if (!function_exists('po_select_candidate')) {
         $max_reg_w   = ($max_size !== 'full') ? po_get_registered_width($max_size) : 0;
         $min_reg_w   = ($min_size !== '')  ? po_get_registered_width($min_size) : 0;
         $prelast_bp = po_get_breakpoint_order()[array_key_last(po_get_breakpoint_order()) - 1] ?? null;
+        $available[$min_size] = isset($available[$min_size]) ?: null;
+
 
         $reference = $min_reg_w !== 0 ? $available[$min_size] : null;
 
