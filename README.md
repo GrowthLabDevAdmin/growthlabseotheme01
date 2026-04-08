@@ -29,8 +29,8 @@
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/GrowthLabDevAdmin/gorwthlabseotheme01.git
-cd wp-content/themes/growthlabtheme01
+git clone https://github.com/GrowthLabDevAdmin/growthlabseotheme01.git
+cd wp-content/themes/growthlabseotheme01
 ```
 
 2. Install Node dependencies:
@@ -51,7 +51,7 @@ npx gulp
 
 ### Production
 
-- Upload theme files to `/wp-content/themes/growthlabtheme01/`
+- Upload theme files to `/wp-content/themes/growthlabseotheme01/`
 - Activate theme from WordPress Admin
 - Import ACF JSON (if needed): Dashboard → ACF → Tools → Import
 - Clear cache from plugins and CDN
@@ -60,7 +60,7 @@ npx gulp
 # 📁 Project Structure
 
 ```text
-growthlabtheme01/
+growthlabseotheme01/
 ├── blocks/                      # Dynamic Gutenberg blocks
 │   ├── block-contact-form/      # Contact form block
 │   ├── block-cta-box/           # CTA block
@@ -318,7 +318,7 @@ Speeds up development workflow
 Step 1: Initial Setup
 
 Navigate to theme directory
-    cd wp-content/themes/growthlabtheme01
+    cd wp-content/themes/growthlabseotheme01
 
 Install dependencies (one time)
     npm install
@@ -454,7 +454,7 @@ Proprietary — Exclusive use of GrowthLab SEO. Consult with development team fo
 # 👥 Support & Contact
 Development Team: GrowthLab SEO Development Team
 Email: arturo@growthlabseo.com
-GitHub Issues: https://github.com/GrowthLabDevAdmin/gorwthlabseotheme01/issues
+GitHub Issues: https://github.com/GrowthLabDevAdmin/growthlabseotheme01/issues
 
 Version: 1.0.0
 Last Updated: December 4, 2025

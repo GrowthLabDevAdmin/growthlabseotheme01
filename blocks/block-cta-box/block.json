@@ -3,7 +3,7 @@
   "title": "CTA Box",
   "style": ["file:./block-min.css"],
   "script": ["file:./block-min.js"],
-  "category": "growthlabtheme01-blocks",
+  "category": "growthlabseotheme01-blocks",
   "icon": "block-default",
   "keywords": ["growthlabseo", "cta", "inset", "floating"],
   "acf": {
