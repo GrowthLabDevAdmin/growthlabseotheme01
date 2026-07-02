@@ -7,22 +7,39 @@ if (!function_exists('add_file_types_to_uploads')) {
         return array_merge($file_types, $new_filetypes);
     }
 }
-add_filter('upload_mimes', 'add_file_types_to_uploads');
+add_filter('upload_mimes', 'add_file_types_to_uploads', 1);
 
-add_filter('wp_check_filetype_and_ext', 'allow_svg_filetype', 10, 5);
+add_filter('wp_check_filetype_and_ext', 'allow_svg_filetype', 1, 5);
 function allow_svg_filetype($data, $file, $filename, $mimes, $real_mime)
 {
-    if (preg_match('/\.svg$/i', $filename)) {
-        $data[0] = 'svg';
-        $data[1] = 'image/svg+xml';
-        $data[2] = false;
-        $data[3] = 'svg';
+    if (preg_match('/\.svg$/i', $filename) || strtolower($real_mime) === 'image/svg+xml') {
+        $override = array(
+            'ext' => 'svg',
+            'type' => 'image/svg+xml',
+            'proper_filename' => $filename,
+            0 => 'svg',
+            1 => 'image/svg+xml',
+            2 => false,
+            3 => 'svg',
+        );
+
+        $data = array_merge((array) $data, $override);
     }
 
     return $data;
 }
 
-add_filter('file_is_displayable_image', 'allow_svg_as_displayable_image', 10, 2);
+add_filter('wp_get_image_mime', 'allow_svg_image_mime', 10, 2);
+function allow_svg_image_mime($mime, $file)
+{
+    if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
+        return 'image/svg+xml';
+    }
+
+    return $mime;
+}
+
+add_filter('file_is_displayable_image', 'allow_svg_as_displayable_image', 1, 2);
 function allow_svg_as_displayable_image($result, $path)
 {
     if ($result === false && strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'svg') {
@@ -30,6 +47,20 @@ function allow_svg_as_displayable_image($result, $path)
     }
 
     return $result;
+}
+
+add_filter('wp_prepare_attachment_for_js', 'allow_svg_attachment_for_js', 10, 3);
+function allow_svg_attachment_for_js($response, $attachment, $meta)
+{
+    if (isset($response['mime']) && $response['mime'] === 'image/svg+xml') {
+        $response['type'] = 'image';
+        $response['subtype'] = 'svg+xml';
+        if (!empty($response['url'])) {
+            $response['sizes'] = [];
+        }
+    }
+
+    return $response;
 }
 
 if (!function_exists('wp_check_svg')) {
