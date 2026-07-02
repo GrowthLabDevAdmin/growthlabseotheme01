@@ -27,13 +27,33 @@ add_filter('block_categories_all', 'theme_blocks_category', 10, 2);
 if (!function_exists('register_acf_blocks')) {
     function register_acf_blocks()
     {
-        $cache_key   = 'theme_block_files_cache_' . get_stylesheet();
+        $cache_key = 'theme_block_files_cache_' . get_stylesheet();
+        $hash_key  = 'theme_block_files_hash_' . get_stylesheet();
+
+        $block_json_files = array_merge(
+            glob(get_template_directory() . '/blocks/*/block.json') ?: [],
+            glob(get_stylesheet_directory() . '/blocks/*/block.json') ?: []
+        );
+
+        $current_hash = md5(implode('|', array_map(
+            fn($f) => $f . ':' . filemtime($f),
+            $block_json_files
+        )));
+
+        if (get_transient($hash_key) !== $current_hash) {
+            delete_transient($cache_key);
+        }
+
+        if (is_admin() && (defined('WP_DEBUG') && WP_DEBUG || isset($_GET['clear_block_cache']))) {
+            delete_transient($cache_key);
+            delete_transient($hash_key);
+        }
+
         $block_files = get_transient($cache_key);
 
         if ($block_files === false) {
             $block_files = [];
 
-            // 1. Parent blocks
             foreach (glob(get_template_directory() . '/blocks/*/block.json') ?: [] as $block) {
                 $data = json_decode(file_get_contents($block), true);
                 if (!empty($data['name'])) {
@@ -41,7 +61,6 @@ if (!function_exists('register_acf_blocks')) {
                 }
             }
 
-            // 2. Child blocks (override)
             foreach (glob(get_stylesheet_directory() . '/blocks/*/block.json') ?: [] as $block) {
                 $data = json_decode(file_get_contents($block), true);
                 if (!empty($data['name'])) {
@@ -49,24 +68,22 @@ if (!function_exists('register_acf_blocks')) {
                 }
             }
 
-            // Cache for 24 hours, purged on theme update
             set_transient($cache_key, $block_files, 24 * HOUR_IN_SECONDS);
+            set_transient($hash_key, $current_hash, 24 * HOUR_IN_SECONDS);
         }
 
-        // Store block folder map globally for later critical CSS extraction.
         global $acf_block_dirs;
         $acf_block_dirs = $block_files;
 
-        // 3. Register all found blocks
         foreach ($block_files as $block_dir) {
             register_block_type($block_dir);
         }
     }
 }
 
-// Clear block cache on theme switch/update
 add_action('switch_theme', function () {
     delete_transient('theme_block_files_cache_' . get_stylesheet());
+    delete_transient('theme_block_files_hash_' . get_stylesheet());
 });
 
 add_action('init', 'register_acf_blocks', 5);
@@ -322,6 +339,9 @@ add_filter('acf/settings/load_json', 'my_acf_json_load_point');
  * SAFEGUARDS:
  * - Hash-based change detection (prevents unnecessary syncs)
  * - 30-second execution timeout (prevents memory bloat)
+ *
+ * NOTE: Multisite not supported — sync only runs when this theme
+ * is the active theme in the current WordPress context.
  */
 $_theme_dir = basename(dirname(__FILE__, 2));
 
@@ -379,33 +399,77 @@ $acf_sync = function () use ($_theme_dir) {
         add_filter('acf/settings/save_json', '__return_false', 99);
 
         // ─── CPTs ─────────────────────────────────────────────────────────────
+        $cpt_rows = $wpdb->get_results(
+            "SELECT MIN(ID) as ID, post_name FROM {$wpdb->posts}
+             WHERE post_type = 'acf-post-type'
+             AND post_status IN ('publish', 'acf-disabled', 'trash', 'draft')
+             GROUP BY post_name"
+        );
+        $existing_cpt_ids  = [];
+        foreach ($cpt_rows as $r) {
+            $existing_cpt_ids[$r->post_name] = (int) $r->ID;
+        }
+
+        $processed_cpt_keys = [];
+
         foreach (glob($parent_json_path . '/post_type_*.json') ?: [] as $file) {
             if ((microtime(true) - $execution_start) > $max_execution_time) break;
             if (!is_readable($file)) {
                 $warnings++;
                 continue;
             }
+
             $json_data = json_decode(file_get_contents($file), true);
             if (empty($json_data) || !is_array($json_data)) {
                 $warnings++;
                 continue;
             }
+
+            $cpt_key = $json_data['key'] ?? null;
+            if (!$cpt_key || in_array($cpt_key, $processed_cpt_keys, true)) continue;
+            $processed_cpt_keys[] = $cpt_key;
+
+            $existing_id = $existing_cpt_ids[$cpt_key] ?? 0;
+            if ($existing_id) $json_data['ID'] = $existing_id;
+
             acf_update_post_type($json_data);
             $synced++;
         }
 
         // ─── Taxonomías ───────────────────────────────────────────────────────
+        $tax_rows = $wpdb->get_results(
+            "SELECT MIN(ID) as ID, post_name FROM {$wpdb->posts}
+             WHERE post_type = 'acf-taxonomy'
+             AND post_status IN ('publish', 'acf-disabled', 'trash', 'draft')
+             GROUP BY post_name"
+        );
+        $existing_tax_ids  = [];
+        foreach ($tax_rows as $r) {
+            $existing_tax_ids[$r->post_name] = (int) $r->ID;
+        }
+
+        $processed_tax_keys = [];
+
         foreach (glob($parent_json_path . '/taxonomy_*.json') ?: [] as $file) {
             if ((microtime(true) - $execution_start) > $max_execution_time) break;
             if (!is_readable($file)) {
                 $warnings++;
                 continue;
             }
+
             $json_data = json_decode(file_get_contents($file), true);
             if (empty($json_data) || !is_array($json_data)) {
                 $warnings++;
                 continue;
             }
+
+            $tax_key = $json_data['key'] ?? null;
+            if (!$tax_key || in_array($tax_key, $processed_tax_keys, true)) continue;
+            $processed_tax_keys[] = $tax_key;
+
+            $existing_id = $existing_tax_ids[$tax_key] ?? 0;
+            if ($existing_id) $json_data['ID'] = $existing_id;
+
             acf_update_taxonomy($json_data);
             $synced++;
         }
@@ -549,7 +613,70 @@ if (!function_exists('acf_color_picker_palette_script')) {
                 max-width: 100% !important;
             }
         </style>
-<?php
+    <?php
     }
 }
 add_action('acf/input/admin_head', 'acf_color_picker_palette_script');
+
+
+// NOTE: The google_maps_embed_code field stores values with a base64: prefix.
+// Encoding happens client-side (acf/input/admin_footer) before saving
+// to prevent ModSecurity false positives with Google Maps URLs.
+// DO NOT move this logic to PHP — the 403 occurs before the request reaches PHP.
+//
+// Selector: .acf-field[data-name="google_maps_embed_code"] input[type="text"]
+// The field may be nested inside repeaters; the selector covers this via data-name.
+//
+// To decode on frontend output:
+// if ( str_starts_with( $value, 'base64:' ) ) {
+//     $value = base64_decode( substr( $value, 7 ) );
+// }
+add_action('acf/input/admin_footer', function () {
+    ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            function encodeGoogleMapsFields() {
+                document.querySelectorAll(
+                    '.acf-field[data-name="google_maps_embed_code"] input[type="text"]'
+                ).forEach(function(field) {
+                    if (
+                        field.value &&
+                        field.value.includes('google.com/maps/embed') &&
+                        !field.value.startsWith('base64:')
+                    ) {
+                        field.value = 'base64:' + btoa(
+                            unescape(encodeURIComponent(field.value))
+                        );
+                    }
+                });
+            }
+
+            // Classic editor
+            var form = document.querySelector('#post');
+            if (form) {
+                form.addEventListener('submit', encodeGoogleMapsFields);
+            }
+
+            // Gutenberg
+            if (typeof wp !== 'undefined' && wp.data) {
+                var wasSaving = false;
+
+                wp.data.subscribe(function() {
+                    var editor = wp.data.select('core/editor');
+                    if (!editor) return;
+
+                    var isSaving = editor.isSavingPost() && !editor.isAutosavingPost();
+
+                    if (isSaving && !wasSaving) {
+                        encodeGoogleMapsFields();
+                    }
+
+                    wasSaving = isSaving;
+                });
+            }
+
+        });
+    </script>
+<?php
+});
