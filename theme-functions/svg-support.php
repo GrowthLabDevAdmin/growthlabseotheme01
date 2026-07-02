@@ -200,3 +200,18 @@ if (!function_exists('sanitize_svg')) {
         return $file;
     }
 }
+
+add_filter('wp_check_filetype_and_ext', 'allow_svg_filetype', 10, 5);
+function allow_svg_filetype($data, $file, $filename, $mimes, $real_mime) {
+    if (!$data[0] && preg_match('/\.svg$/i', $filename)) {
+        return ['svg', 'image/svg+xml', false, 'svg'];
+    }
+    return $data;
+}
+
+add_filter('file_is_displayable_image', function($result, $path) {
+    if ($result === false && strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'svg') {
+        return true;
+    }
+    return $result;
+}, 10, 2);
