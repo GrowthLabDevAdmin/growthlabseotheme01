@@ -10,6 +10,10 @@
  * 
  */
 
+
+// Theme text domain global
+$GLOBALS['theme_text_domain'] = 'growthlabseotheme01';
+
 $GLOBALS['breakpoints'] = [
     'mobile' => '0px',
     'tablet' => '768px',   // diferente al default
@@ -23,6 +27,7 @@ $GLOBALS['breakpoints'] = [
 $includes = [
     'theme-functions/theme-optimization.php',
     'theme-functions/color-scheme.php',
+    'theme-functions/fonts-selector.php',
     'theme-functions/acf-functions.php',
     'theme-functions/helpers.php',
     'theme-functions/svg-support.php',
@@ -90,11 +95,15 @@ if (!function_exists('growthlabseotheme01_setup')) {
             return $sizes;
         });
 
-        //Add custom sized images
+        //Add custom sized images (match theme-03)
         // Covers
         add_image_size('cover-desktop', 1920, 1080, false);
-        add_image_size('cover-tablet', 1280, 600, false);
+        add_image_size('cover-tablet', 1280, 960, false);
         add_image_size('cover-mobile', 768, 432, false);
+
+        // Covers portrait
+        add_image_size('cover-tablet-portrait', 960, 1280, true);
+        add_image_size('cover-mobile-portrait', 768, 1100, true);
 
         // Content
         add_image_size('content', 800, 600, false);
@@ -110,169 +119,64 @@ if (!function_exists('growthlabseotheme01_setup')) {
                 'large'        => __('Grande'),
                 'full'         => __('Tamaño completo'),
                 'cover-desktop'  => __('Cover Desktop (1920×1080)'),
-                'cover-tablet'   => __('Cover Tablet (1280×600)'),
+                'cover-tablet'   => __('Cover Tablet (1280x960)'),
                 'cover-mobile'   => __('Cover Mobile (768×432)'),
+                'cover-tablet-portrait'   => __('Cover Tablet (960x1280)'),
+                'cover-mobile-portrait'   => __('Cover Mobile (768×1100)'),
                 'content'   => __('Contenido (800×600)'),
                 'featured-small' => __('Featured Small (480×360)'),
             ], $sizes);
         });
 
-        // Tipography and Color Support
-        add_theme_support('appearance-tools');
-
-        // Font Sizes support
-        add_theme_support('editor-font-sizes', array(
-            array(
-                'name' => esc_attr__(
-                    'Small',
-                    'growthlabseotheme01'
-                ),
-                'size' => 12,
-                'slug' => 'small'
-            ),
-            array(
-                'name' => esc_attr__(
-                    'Regular',
-                    'growthlabseotheme01'
-                ),
-                'size' => 16,
-                'slug' => 'regular'
-            ),
-            array(
-                'name' => esc_attr__(
-                    'Medium',
-                    'growthlabseotheme01'
-                ),
-                'size' => 18,
-                'slug' => 'medium'
-            ),
-            array(
-                'name' => esc_attr__(
-                    'Large',
-                    'growthlabseotheme01'
-                ),
-                'size' => 22,
-                'slug' => 'large'
-            ),
-            array(
-                'name' => esc_attr__(
-                    'Extra Large',
-                    'growthlabseotheme01'
-                ),
-                'size' => 28,
-                'slug' => 'xl'
-            ),
-            array(
-                'name' => esc_attr__(
-                    'Huge',
-                    'growthlabseotheme01'
-                ),
-                'size' => 32,
-                'slug' => 'xl'
-            )
-        ));
-
-        // Color Palette support
-        add_theme_support(
-            'editor-color-palette',
-            array(
-                array(
-                    'name'  => __(
-                        'Primary Color',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'primary-color',
-                    'color' => get_theme_mod('primary_color', '#15253f'),
-                ),
-                array(
-                    'name'  => __(
-                        'Primary Color Dark',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'primary-color-dark',
-                    'color' => get_theme_mod('primary_color_dark', '#08182f'),
-                ),
-                array(
-                    'name'  => __(
-                        'Primary Color Light',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'primary-color-light',
-                    'color' => get_theme_mod('primary_color_light', '#2C3D5B'),
-                ),
-                array(
-                    'name'  => __(
-                        'Secondary Color',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'secondary-color',
-                    'color' => get_theme_mod('secondary_color', '#F4F3EE'),
-                ),
-                array(
-                    'name'  => __(
-                        'Secondary Color Dark',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'secondary-color-dark',
-                    'color' => get_theme_mod('secondary_color_dark', '#E7E5DF'),
-                ),
-                array(
-                    'name'  => __(
-                        'Secondary Color Light',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'secondary-color-light',
-                    'color' => get_theme_mod('secondary_color_light', '#FFFFFF'),
-                ),
-                array(
-                    'name'  => __(
-                        'Tertiary Color',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'tertiary-color',
-                    'color' => get_theme_mod('tertiary_color', '#BC9061'),
-                ),
-                array(
-                    'name'  => __(
-                        'Tertiary Color Dark',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'tertiary-color-dark',
-                    'color' => get_theme_mod('tertiary_color_dark', '#9D7A55'),
-                ),
-                array(
-                    'name'  => __(
-                        'Tertiary Color Light',
-                        'growthlabseotheme01'
-                    ),
-                    'slug'  => 'tertiary-color-light',
-                    'color' => get_theme_mod('tertiary_color_light', '#DCAB77'),
-                ),
-                array(
-                    'name'  => __(
-                        'Text Color',
-                        'growthlabseotheme01 '
-                    ),
-                    'slug'  => 'text-color',
-                    'color' => get_theme_mod('text_color', '#15253f'),
-                ),
-            )
-        );
-
         // Register Navigation Menus
         register_nav_menus(
             array(
-                'main' => esc_html__('Main Menu', 'growthlabseotheme01')
+                'main' => esc_html__('Main Menu', get_text_domain())
             )
         );
         register_nav_menus(
             array(
-                'main_es' => esc_html__('Main Menu Spanish', 'growthlabseotheme01')
+                'main_es' => esc_html__('Main Menu Spanish', get_text_domain())
             )
         );
     }
 }
 add_action('after_setup_theme', 'growthlabseotheme01_setup');
+
+add_filter('wp_theme_json_data_theme', function ($theme_json) {
+    global $default_colors, $default_fonts;
+
+    $data = $theme_json->get_data();
+
+    $data['settings']['color']['defaultPalette'] = false;
+    $data['settings']['color']['defaultGradients'] = false;
+    $data['settings']['typography']['defaultFontSizes'] = false;
+    $data['settings']['spacing']['defaultSpacingSizes'] = false;
+
+    $data['settings']['color']['palette'] = [
+        ['name' => __('Primary Color', get_text_domain()), 'slug' => 'primary-color', 'color' => get_theme_mod('primary_color', $default_colors['primary']['default'])],
+        ['name' => __('Primary Color Dark', get_text_domain()), 'slug' => 'primary-color-dark', 'color' => get_theme_mod('primary_color_dark', $default_colors['primary']['dark'])],
+        ['name' => __('Primary Color Light', get_text_domain()), 'slug' => 'primary-color-light', 'color' => get_theme_mod('primary_color_light', $default_colors['primary']['light'])],
+        ['name' => __('Secondary Color', get_text_domain()), 'slug' => 'secondary-color', 'color' => get_theme_mod('secondary_color', $default_colors['secondary']['default'])],
+        ['name' => __('Secondary Color Dark', get_text_domain()), 'slug' => 'secondary-color-dark', 'color' => get_theme_mod('secondary_color_dark', $default_colors['secondary']['dark'])],
+        ['name' => __('Secondary Color Light', get_text_domain()), 'slug' => 'secondary-color-light', 'color' => get_theme_mod('secondary_color_light', $default_colors['secondary']['light'])],
+        ['name' => __('Tertiary Color', get_text_domain()), 'slug' => 'tertiary-color', 'color' => get_theme_mod('tertiary_color', $default_colors['tertiary']['default'])],
+        ['name' => __('Tertiary Color Dark', get_text_domain()), 'slug' => 'tertiary-color-dark', 'color' => get_theme_mod('tertiary_color_dark', $default_colors['tertiary']['dark'])],
+        ['name' => __('Tertiary Color Light', get_text_domain()), 'slug' => 'tertiary-color-light', 'color' => get_theme_mod('tertiary_color_light', $default_colors['tertiary']['light'])],
+        ['name' => __('Text Color', get_text_domain()), 'slug' => 'text-color', 'color' => get_theme_mod('text_color', $default_colors['text'])],
+    ];
+
+    $font_primary = get_theme_mod('font_primary', $default_fonts['primary']);
+    $font_secondary = get_theme_mod('font_secondary', $default_fonts['secondary']);
+
+    $data['settings']['typography']['fontFamilies'] = [
+        ['name' => $font_primary, 'slug' => 'primary', 'fontFamily' => '"' . $font_primary . '", sans-serif'],
+        ['name' => $font_secondary, 'slug' => 'secondary', 'fontFamily' => '"' . $font_secondary . '", serif'],
+    ];
+
+    $theme_json->update_with($data);
+    return $theme_json;
+});
 
 /**
  * Remove link from custom logo
@@ -314,13 +218,25 @@ add_filter('excerpt_more', 'wpdocs_excerpt_more');
 function inline_main_critical_css()
 {
     global $block_critical_css;
+    // Dynamic Fonts
+    $fonts_css = function_exists('theme_get_fonts_css') ? theme_get_fonts_css() : '';
 
     // Dynamic Color Scheme
-    $color_scheme = theme_get_customizer_css();
+    $color_scheme = function_exists('theme_get_customizer_css') ? theme_get_customizer_css() : '';
 
-    $critical_css = file_get_contents(get_template_directory() . "/styles/main-min.css");
-    $critical_css .= file_get_contents(get_stylesheet_uri());
-    $critical_css =  $color_scheme . $critical_css;
+    $critical_css = '';
+    $main_css_file = get_template_directory() . "/styles/main-min.css";
+    if (file_exists($main_css_file)) {
+        $critical_css .= file_get_contents($main_css_file);
+    }
+
+    // Add theme stylesheet
+    $style_css = get_stylesheet_directory() . '/style.css';
+    if (file_exists($style_css)) {
+        $critical_css .= file_get_contents($style_css);
+    }
+
+    $critical_css = $fonts_css . $color_scheme . $critical_css;
 
     // Add Splide critical CSS only when carousels are present
     $splide_css_file = get_template_directory() . '/styles/vendor/splide/splide-core.min.css';
@@ -331,20 +247,20 @@ function inline_main_critical_css()
     // Add block critical CSS if any
     if (!empty($block_critical_css)) {
         // Remove duplicate :root variables from block critical CSS
-        $block_critical_css = str_replace(':root{--font-sans: "Open Sans", sans-serif;--font-serif: "Fraunces", serif;--sp-xsm: 1.6rem;--sp-sm: 3.2rem;--sp-md: 4.8rem;--sp-lg: 6.4rem}', '', $block_critical_css);
+        $block_critical_css = str_replace(':root{--font-secondary: "Khand", sans-serif;--font-primary: "Figtree", serif;--container: 1240px;--sp-xsm: 1.6rem;--sp-sm: 3.2rem;--sp-md: 4.8rem;--sp-lg: 6.4rem}', '', $block_critical_css);
         $critical_css .= "\n/* Block Critical CSS */\n" . $block_critical_css;
     }
 
     $critical_css = preg_replace('/\{theme-path\}/', get_template_directory_uri(), $critical_css);
     // Minify CSS: remove comments, extra spaces, and newlines
     $critical_css = preg_replace('/\/\*.*?\*\//s', '', $critical_css); // Remove CSS comments
-    $critical_css = preg_replace('/\s+/', ' ', $critical_css); // Replace multiple spaces with single space
+    $critical_css = preg_replace('/\s/', ' ', $critical_css); // Replace multiple spaces with single space
     $critical_css = preg_replace('/\s*([{}:;,])\s*/', '$1', $critical_css); // Remove spaces around braces, colons, semicolons, commas
     $critical_css = trim($critical_css); // Trim leading/trailing whitespace
 
     echo '<style id="main-css">' . $critical_css . '</style>';
 }
-add_action('wp_head', 'inline_main_critical_css', 1);
+add_action('wp_head', 'inline_main_critical_css', 10);
 
 function growthlabseotheme01_scripts()
 {
@@ -369,6 +285,18 @@ function growthlabseotheme01_scripts()
         true
     );
     wp_script_add_data('growthlabseotheme01-main-scripts', 'strategy', 'defer');
+
+    // Picture Optimization scripts.
+    if (file_exists(get_template_directory() . '/js/picture-optimization-min.js')) {
+        wp_enqueue_script(
+            'growthlabseotheme01-picture-optimization',
+            get_template_directory_uri() . '/js/picture-optimization-min.js',
+            array(),
+            filemtime(get_template_directory() . '/js/picture-optimization-min.js'),
+            true
+        );
+        wp_script_add_data('growthlabseotheme01-picture-optimization', 'strategy', 'defer');
+    }
 
     // Third party JS scripts.
     wp_localize_script('growthlabseotheme01-main-scripts', 'splideData', [
@@ -423,9 +351,9 @@ function growthlabseotheme01_widgets_init()
 
     register_sidebar(
         array(
-            'name'          => esc_html__('Default Sidebar', 'growthlabseotheme01'),
+            'name'          => esc_html__('Default Sidebar', get_text_domain()),
             'id'            => 'sidebar-default',
-            'description'   => esc_html__('Add widgets here to appear in the page sidebar.', 'growthlabseotheme01'),
+            'description'   => esc_html__('Add widgets here to appear in the page sidebar.', get_text_domain()),
             'before_widget' => '<div id="%1$s" class="widget %2$s">',
             'after_widget'  => '</div>',
             'before_title'  => '<p class="widget-title">',
@@ -435,9 +363,9 @@ function growthlabseotheme01_widgets_init()
 
     register_sidebar(
         array(
-            'name'          => esc_html__('Blog Sidebar', 'growthlabseotheme01'),
+            'name'          => esc_html__('Blog Sidebar', get_text_domain()),
             'id'            => 'sidebar-blog',
-            'description'   => esc_html__('Add widgets here to appear in the Blog sidebar.', 'growthlabseotheme01'),
+            'description'   => esc_html__('Add widgets here to appear in the Blog sidebar.', get_text_domain()),
             'before_widget' => '<div id="%1$s" class="widget %2$s">',
             'after_widget'  => '</div>',
             'before_title'  => '<p class="widget-title">',
@@ -447,9 +375,9 @@ function growthlabseotheme01_widgets_init()
 
     register_sidebar(
         array(
-            'name'          => esc_html__('Default Sidebar Spanish', 'growthlabseotheme01'),
+            'name'          => esc_html__('Default Sidebar Spanish', get_text_domain()),
             'id'            => 'sidebar-default-es',
-            'description'   => esc_html__('Add widgets here to appear in the page Spanish sidebar.', 'growthlabseotheme01'),
+            'description'   => esc_html__('Add widgets here to appear in the page Spanish sidebar.', get_text_domain()),
             'before_widget' => '<div id="%1$s" class="widget %2$s">',
             'after_widget'  => '</div>',
             'before_title'  => '<p class="widget-title">',
@@ -459,9 +387,9 @@ function growthlabseotheme01_widgets_init()
 
     register_sidebar(
         array(
-            'name'          => esc_html__('Blog Sidebar Spanish', 'growthlabseotheme01'),
+            'name'          => esc_html__('Blog Sidebar Spanish', get_text_domain()),
             'id'            => 'sidebar-blog-es',
-            'description'   => esc_html__('Add widgets here to appear in the Blog Spanish sidebar.', 'growthlabseotheme01'),
+            'description'   => esc_html__('Add widgets here to appear in the Blog Spanish sidebar.', get_text_domain()),
             'before_widget' => '<div id="%1$s" class="widget %2$s">',
             'after_widget'  => '</div>',
             'before_title'  => '<p class="widget-title">',
@@ -502,6 +430,8 @@ add_filter('gform_submit_button', function ($button, $form) {
         esc_html($value)
     );
 }, 10, 2);
+
+
 
 //Import All Theme Icons to the Media Library
 //Run only once after theme installation
