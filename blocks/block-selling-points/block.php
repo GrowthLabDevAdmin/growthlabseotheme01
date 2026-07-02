@@ -45,7 +45,7 @@ if (get_field('toggle_block')):
                                         <div class="item-card splide__slide">
                                             <div class="item-card__inner">
                                                 <div class="item-card__icon">
-                                                    <?= image_to_svg($icon) ?>
+                                                    <?php img_print_picture_tag(img: $icon, classes: 'item-card__icon-img', max_size: "thumbnail") ?>
                                                 </div>
 
                                                 <<?= $title_tag ?> class="item-card__title">
