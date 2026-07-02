@@ -30,6 +30,11 @@ if (!function_exists('_theme_get_tinymce_color_map')) {
     }
 }
 
+add_filter('mce_external_plugins', function ($plugins) {
+    $plugins['lineheight'] = get_template_directory_uri() . '/js/vendor/tiny-mce/lineheight-min.js';
+    return $plugins;
+});
+
 // 1️⃣ Load editor CSS
 function my_acf_editor_styles($mce_css)
 {
@@ -49,14 +54,10 @@ add_filter('mce_css', 'my_acf_editor_styles');
 // 2️⃣ TinyMCE configuration - For standard WordPress
 function my_acf_wysiwyg_custom_settings($init)
 {
-    // Custom fonts
     $init['font_formats'] = 'Open Sans=Open Sans,sans-serif;Fraunces=Fraunces,serif;Arial=Arial,Helvetica,sans-serif;Times New Roman=Times New Roman,Times,serif';
-
-    // Font sizes
     $init['fontsize_formats'] = '8px 10px 12px 14px 16px 18px 20px 24px 28px 32px 36px 40px 48px';
-
-    // DO NOT configure textcolor_map here for standard WordPress
-    // We'll do it only in ACF with JavaScript
+    $init['lineheight_formats'] = '.5 .55 .6 .65 .7 .75 .8 .85 .9 .95 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 2 2.5 3';
+    $init['plugins'] = trim(($init['plugins'] ?? '') . ' textcolor lineheight');
 
     return $init;
 }
@@ -68,8 +69,8 @@ function my_acf_tinymce_settings($init, $id)
 {
     $init['font_formats'] = 'Open Sans=Open Sans,sans-serif;Fraunces=Fraunces,serif;Arial=Arial,Helvetica,sans-serif;Times New Roman=Times New Roman,Times,serif';
     $init['fontsize_formats'] = '8px 10px 12px 14px 16px 18px 20px 24px 28px 32px 36px 40px 48px';
-
-    // DO NOT configure textcolor_map here
+    $init['lineheight_formats'] = '.5 .55 .6 .65 .7 .75 .8 .85 .9 .95 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 2 2.5 3';
+    $init['plugins'] = trim(($init['plugins'] ?? '') . ' textcolor lineheight');
 
     return $init;
 }
@@ -83,6 +84,7 @@ function my_acf_override_full_toolbar($toolbars)
         'formatselect',
         'fontselect',
         'fontsizeselect',
+        'lineheightselect',
         'bold',
         'italic',
         'underline',
@@ -146,52 +148,52 @@ function my_wp_editor_formats()
     // Add support for custom formats
     add_theme_support('editor-color-palette', array(
         array(
-            'name'  => __('Primary Color', 'growthlabseotheme01'),
+            'name'  => __('Primary Color', get_text_domain()),
             'slug'  => 'primary',
             'color' => sanitize_hex_color(get_theme_mod('primary_color', '#15253f')) ?: '#15253f',
         ),
         array(
-            'name'  => __('Primary Dark', 'growthlabseotheme01'),
+            'name'  => __('Primary Dark', get_text_domain()),
             'slug'  => 'primary-dark',
             'color' => sanitize_hex_color(get_theme_mod('primary_color_dark', '#08182f')) ?: '#08182f',
         ),
         array(
-            'name'  => __('Primary Light', 'growthlabseotheme01'),
+            'name'  => __('Primary Light', get_text_domain()),
             'slug'  => 'primary-light',
             'color' => sanitize_hex_color(get_theme_mod('primary_color_light', '#2C3D5B')) ?: '#2C3D5B',
         ),
         array(
-            'name'  => __('Secondary Color', 'growthlabseotheme01'),
+            'name'  => __('Secondary Color', get_text_domain()),
             'slug'  => 'secondary',
             'color' => sanitize_hex_color(get_theme_mod('secondary_color', '#F4F3EE')) ?: '#F4F3EE',
         ),
         array(
-            'name'  => __('Secondary Dark', 'growthlabseotheme01'),
+            'name'  => __('Secondary Dark', get_text_domain()),
             'slug'  => 'secondary-dark',
             'color' => sanitize_hex_color(get_theme_mod('secondary_color_dark', '#E7E5DF')) ?: '#E7E5DF',
         ),
         array(
-            'name'  => __('Secondary Light', 'growthlabseotheme01'),
+            'name'  => __('Secondary Light', get_text_domain()),
             'slug'  => 'secondary-light',
             'color' => sanitize_hex_color(get_theme_mod('secondary_color_light', '#FFFFFF')) ?: '#FFFFFF',
         ),
         array(
-            'name'  => __('Tertiary Color', 'growthlabseotheme01'),
+            'name'  => __('Tertiary Color', get_text_domain()),
             'slug'  => 'tertiary',
             'color' => sanitize_hex_color(get_theme_mod('tertiary_color', '#BC9061')) ?: '#BC9061',
         ),
         array(
-            'name'  => __('Tertiary Dark', 'growthlabseotheme01'),
+            'name'  => __('Tertiary Dark', get_text_domain()),
             'slug'  => 'tertiary-dark',
             'color' => sanitize_hex_color(get_theme_mod('tertiary_color_dark', '#9D7A55')) ?: '#9D7A55',
         ),
         array(
-            'name'  => __('Tertiary Light', 'growthlabseotheme01'),
+            'name'  => __('Tertiary Light', get_text_domain()),
             'slug'  => 'tertiary-light',
             'color' => sanitize_hex_color(get_theme_mod('tertiary_color_light', '#DCAB77')) ?: '#DCAB77',
         ),
         array(
-            'name'  => __('Text Color', 'growthlabseotheme01'),
+            'name'  => __('Text Color', get_text_domain()),
             'slug'  => 'text',
             'color' => sanitize_hex_color(get_theme_mod('text_color', '#15253f')) ?: '#15253f',
         ),
@@ -207,14 +209,15 @@ function my_wp_editor_default_settings($init)
 
     // Font sizes (same as ACF)
     $init['fontsize_formats'] = '8px 10px 12px 14px 16px 18px 20px 24px 28px 32px 36px 40px 48px';
+    $init['lineheight_formats'] = '.5 .55 .6 .65 .7 .75 .8 .85 .9 .95 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 2 2.5 3';
 
     // Toolbar configuration (same buttons as ACF)
-    $init['toolbar1'] = 'formatselect,fontselect,fontsizeselect,bold,italic,underline,forecolor,backcolor,bullist,numlist,alignleft,aligncenter,alignright,link,unlink,removeformat,undo,redo';
+    $init['toolbar1'] = 'formatselect,fontselect,fontsizeselect,lineheightselect,bold,italic,underline,forecolor,backcolor,bullist,numlist,alignleft,aligncenter,alignright,link,unlink,removeformat,undo,redo';
     $init['toolbar2'] = '';
 
     $init['textcolor_map'] = ! empty($init['textcolor_map']) ? $init['textcolor_map'] : _theme_get_tinymce_color_map();
     $init['textcolor_cols'] = 5;
-    $init['plugins'] = (isset($init['plugins']) ? $init['plugins'] : '') . ' textcolor';
+    $init['plugins'] = trim((isset($init['plugins']) ? $init['plugins'] : '') . ' textcolor lineheight');
 
     return $init;
 }
