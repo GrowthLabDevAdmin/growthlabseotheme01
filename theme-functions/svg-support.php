@@ -98,60 +98,76 @@ if (!function_exists('wp_check_svg')) {
 }
 add_filter('wp_handle_upload_prefilter', 'wp_check_svg');
 
-if (!function_exists('image_to_svg')) {
-    function image_to_svg(array|string $image, string $classes = '')
-    {
-        if (is_array($image) && (empty($image) || !isset($image['url'], $image['mime_type']))) {
+// Image to SVG
+function image_to_svg(array|string $image, string $classes = '')
+{
+    if (is_array($image) && (empty($image) || !isset($image['url'], $image['mime_type']))) {
+        return '';
+    }
+
+    if (is_string($image) && $image === '') {
+        return '';
+    }
+
+    if (is_array($image)) {
+        $img_url = $image['url'];
+    } else {
+        $img_url = $image;
+    }
+
+    try {
+        $upload_dir = wp_get_upload_dir();
+
+        // Remove query string/URL fragments
+        $img_url = preg_replace('/\?.*$/', '', $img_url);
+
+        // Try mapping from uploads baseurl to basedir
+        $baseurl = untrailingslashit($upload_dir['baseurl']);
+        $basedir = untrailingslashit($upload_dir['basedir']);
+
+        if (strpos($img_url, $baseurl) !== false) {
+            $image_path = str_replace($baseurl, $basedir, $img_url);
+        } elseif (strpos($img_url, home_url('/')) !== false) {
+            // Fallback: map site URLs to ABSPATH
+            $image_path = str_replace(home_url('/'), ABSPATH, $img_url);
+        } else {
+            // If not a site URL, use the path as-is (may already be local)
+            $image_path = $img_url;
+        }
+
+        // Normalize path for Windows and Unix
+        $image_path = wp_normalize_path($image_path);
+
+        // Detailed debug log
+        error_log(sprintf('image_to_svg: url="%s" baseurl="%s" basedir="%s" path="%s"', $img_url, $baseurl, $basedir, $image_path));
+
+        if (!file_exists($image_path) || !is_readable($image_path)) {
+            error_log('SVG Image path is missing or not readable: ' . $image_path);
             return '';
         }
 
-        if (is_string($image) && $image === '') {
-            return '';
-        }
-
-        $img_url = is_array($image) ? $image['url'] : $image;
-
-        try {
-            $upload_dir = wp_get_upload_dir();
-            $img_url = preg_replace('/\?.*$/', '', $img_url);
-
-            $baseurl = untrailingslashit($upload_dir['baseurl']);
-            $basedir = untrailingslashit($upload_dir['basedir']);
-
-            if (strpos($img_url, $baseurl) !== false) {
-                $image_path = str_replace($baseurl, $basedir, $img_url);
-            } elseif (strpos($img_url, home_url('/')) !== false) {
-                $image_path = str_replace(home_url('/'), ABSPATH, $img_url);
-            } else {
-                $image_path = $img_url;
-            }
-
-            $image_path = wp_normalize_path($image_path);
-
-            if (!file_exists($image_path) || !is_readable($image_path)) {
+        if (mime_content_type($image_path) === "image/svg+xml") {
+            $svg_content = @file_get_contents($image_path);
+            if ($svg_content === false) {
+                error_log('Could not read SVG file: ' . $image_path);
                 return '';
             }
 
-            if (mime_content_type($image_path) === 'image/svg+xml') {
-                $svg_content = @file_get_contents($image_path);
-                if ($svg_content === false) {
-                    return '';
-                }
-
-                return sprintf('<div class="%s">%s</div>', esc_attr($classes), $svg_content);
-            }
-
-            return sprintf(
-                '<img src="%s" width="%s" height="%s" alt="%s" title="%s" loading="lazy" decoding="async">',
-                esc_url($img_url),
-                esc_attr($image['width'] ?? ''),
-                esc_attr($image['height'] ?? ''),
-                esc_attr($image['alt'] ?? ''),
-                esc_attr($image['title'] ?? '')
-            );
-        } catch (Exception $e) {
-            return '';
+            return "<div class='$classes'>$svg_content</div>";
         }
+
+        // Build img tag with escaped attributes
+        return sprintf(
+            '<img src="%s" width="%s" height="%s" alt="%s" title="%s" loading="lazy" decoding="async">',
+            esc_url($image['url']),
+            esc_attr($image['width'] ?? ''),
+            esc_attr($image['height'] ?? ''),
+            esc_attr($image['alt'] ?? ''),
+            esc_attr($image['title'] ?? ''),
+        );
+    } catch (Exception $e) {
+        error_log('SVG Processing Error: ' . $e->getMessage());
+        return '';
     }
 }
 
