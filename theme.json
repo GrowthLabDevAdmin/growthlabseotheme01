@@ -1,0 +1,82 @@
+{
+  "version": 2,
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "settings": {
+    "layout": {
+      "contentSize": "780px",
+      "wideSize": "1240px"
+    },
+    "color": {
+      "customColor": true,
+      "palette": []
+    },
+    "typography": {
+      "customFontSize": true,
+      "lineHeight": true,
+      "letterSpacing": true,
+      "fluid": true,
+      "fontSizes": [
+        {
+          "name": "Display",
+          "slug": "display",
+          "size": "8rem",
+          "fluid": { "min": "4rem", "max": "8rem" }
+        },
+        {
+          "name": "Hero",
+          "slug": "hero",
+          "size": "6.5rem",
+          "fluid": { "min": "4rem", "max": "6.5rem" }
+        },
+        {
+          "name": "Heading",
+          "slug": "heading",
+          "size": "4.8rem",
+          "fluid": { "min": "2rem", "max": "4.8rem" }
+        },
+        {
+          "name": "Section",
+          "slug": "section",
+          "size": "3.6rem",
+          "fluid": { "min": "2rem", "max": "3.6rem" }
+        },
+        {
+          "name": "Subheading",
+          "slug": "subheading",
+          "size": "2.8rem",
+          "fluid": { "min": "2rem", "max": "2.8rem" }
+        },
+        {
+          "name": "Body",
+          "slug": "body",
+          "size": "1.8rem",
+          "fluid": { "min": "1.5rem", "max": "1.8rem" }
+        },
+        {
+          "name": "Base",
+          "slug": "base",
+          "size": "1.6rem",
+          "fluid": { "min": "1.4rem", "max": "1.8rem" }
+        },
+        {
+          "name": "Small",
+          "slug": "small",
+          "size": "1.4rem",
+          "fluid": { "min": "1.2rem", "max": "1.6rem" }
+        }
+      ]
+    },
+    "spacing": {
+      "padding": true,
+      "margin": true,
+      "blockGap": true,
+      "units": ["px", "%", "em", "rem", "vw", "vh"]
+    },
+    "border": {
+      "color": true,
+      "radius": true,
+      "style": true,
+      "width": true
+    }
+  }
+}
