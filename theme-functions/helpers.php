@@ -1,4 +1,11 @@
 <?php
+if (!function_exists('get_text_domain')) {
+    function get_text_domain()
+    {
+        return $GLOBALS['theme_text_domain'];
+    }
+}
+
 
 // Helper function to get ACF option fields
 if (!function_exists('get_field_options')) {
