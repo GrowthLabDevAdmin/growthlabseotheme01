@@ -5,9 +5,19 @@ if (!defined('ABSPATH')) {
 ?>
 
 <?php if ($args['iframe_src']):
-    if ($args['iframe_src']): ?>
+
+    if (str_starts_with($args['iframe_src'], 'base64:')) {
+
+        $decoded = base64_decode(substr($args['iframe_src'], 7), true);
+
+        $iframe_src = $decoded ?: '';
+    } else {
+        $iframe_src = $args['iframe_src'];
+    }
+
+    if ($iframe_src): ?>
         <div class="<?= $args["classes"] ?> gmap-lazy"
-            data-src="<?= esc_url($args['iframe_src']) ?>"
+            data-src="<?= esc_url($iframe_src) ?>"
             data-city="<?= esc_attr($args['name']) ?>">
             <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#999;text-align:center;">
                 <svg style="width:48px;height:48px;margin-bottom:8px;opacity:0.5;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -8,7 +8,7 @@ if (!function_exists('theme_blocks_category')) {
     {
         $theme      = wp_get_theme();
         $theme_name = $theme->get('Name');
-        $theme_slug = get_stylesheet();
+        $theme_slug = get_template();
 
         return array_merge(
             $categories,
