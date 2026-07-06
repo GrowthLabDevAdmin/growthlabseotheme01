@@ -21,7 +21,7 @@ if (get_field('toggle_block')):
 
                 <?php if ($title): ?>
                     <?php
-                    print_title($title, $title_tag, "trust-cards__title");
+                    print_title($title, $title_tag, "trust-cards__title tx-center");
                     get_template_part('template-parts/ampersand', 'separator', array('classes' => 'trust-cards__separator'));
                     ?>
                 <?php endif ?>
