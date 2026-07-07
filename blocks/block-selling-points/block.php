@@ -54,7 +54,9 @@ if (get_field('toggle_block')):
                                                     <?= isset($link) && $link ? "</a>" : "" ?>
                                                 </<?= $title_tag ?>>
 
-                                                <p class="item-card__description"><?= $content ?></p>
+                                                <?php if (isset($content) && $content): ?>
+                                                    <p class="item-card__description"><?= $content ?></p>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
 
