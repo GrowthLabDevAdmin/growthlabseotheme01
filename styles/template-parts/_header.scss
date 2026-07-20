@@ -121,12 +121,13 @@
     display: block;
     cursor: pointer;
 
-    picture {
+    &__pic {
       width: 100%;
       height: auto;
       display: block;
     }
 
+    svg,
     img {
       width: 100%;
       height: 100%;
