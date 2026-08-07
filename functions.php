@@ -10,7 +10,6 @@
  * 
  */
 
-
 // Theme text domain global
 $GLOBALS['theme_text_domain'] = 'growthlabseotheme01';
 

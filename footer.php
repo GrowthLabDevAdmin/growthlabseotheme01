@@ -149,7 +149,7 @@
           <?php
           $footer_links_menu = get_field("footer_links_menu") ?: $footer_links_menu;
 
-          if (isset($footer_links_menu) && $footer_links_menu && !get_field("hide_menu")) {
+          if (isset($footer_links_menu) && $footer_links_menu && !get_field("hide_menu") && !empty($footer_links_menu)) {
             wp_nav_menu(
               array(
                 'menu'  => $footer_links_menu,
