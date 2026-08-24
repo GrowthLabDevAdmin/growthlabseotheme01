@@ -17,7 +17,7 @@
   $line-height: 1.25
 ) {
   // Color handling with CSS variable fallback
-  color: if($color != null, $color, rgb(var(--primary)));
+  color: if(sass($color != null): $color; else: rgb(var(--primary)));
 
   font-family: var(--font-secondary);
   font-style: normal;

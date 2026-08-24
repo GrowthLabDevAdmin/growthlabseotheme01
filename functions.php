@@ -408,12 +408,20 @@ add_filter('gform_init_scripts_footer', '__return_true');
 
 add_filter('gform_submit_button', function ($button, $form) {
 
+    if (strpos($button, '<button') !== false) {
+        return $button;
+    }
+
     $id = $class = $onclick = $value = '';
 
     if (preg_match('/id=["\']([^"\']+)["\']/', $button, $m)) $id = $m[1];
     if (preg_match('/class=["\']([^"\']+)["\']/', $button, $m)) $class = $m[1];
     if (preg_match('/onclick=["\']([^"\']+)["\']/', $button, $m)) $onclick = $m[1];
     if (preg_match('/value=["\']([^"\']+)["\']/', $button, $m)) $value = $m[1];
+
+    if (!$value && !empty($form['button']['text'])) {
+        $value = $form['button']['text'];
+    }
 
     // Retornar nuevo botón con el valor dinámico y el SVG
     return sprintf(

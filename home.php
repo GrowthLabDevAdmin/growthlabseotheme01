@@ -44,8 +44,10 @@ $options = get_field_options('options' . $es);
         </main>
 
         <?php
-        $args = array('ID' => $post_id, 'classes' => 'blog__sidebar');
-        get_sidebar('blog', $args);
+        if (!get_field("hide_sidebar", $post_id)) {
+            $args = array('ID' => $post_id, 'classes' => 'blog__sidebar');
+            get_sidebar('blog', $args);
+        }
         ?>
 
     </div>
