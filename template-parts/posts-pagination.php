@@ -36,7 +36,7 @@ $next_arrow = '
         ';
 
 $pagination = paginate_links(array(
-    'format' => '?paged=%#%',
+    'format' => '/page/%#%/',
     'current' => max(1, $paged),
     'total' => $query->max_num_pages,
     'prev_text' => $prev_arrow,
