@@ -112,7 +112,8 @@ function phonenumber($atts, $content = null)
         'text' => ''
     ), $atts));
 
-    $options = get_current_language_options();
+    $es = filterContentByLanguage() ? '_es' : '';
+    $options = get_field_options('options' . $es);
 
     $phone = $options['main_phone_number'] ?? "";
 
